@@ -38,7 +38,6 @@ Sistema de _gerenciamento de clientes, produtos e pedidos_, desenvolvido como de
 
 #### Dependências:
 - Spring Web
-- Spring Data JPA
 - PostgreSQL Driver
 - Flyway Migration
 - Spring Validation
@@ -138,7 +137,7 @@ backend/
 │  │  ├── request/  # DTOs de entrada
 │  │  └── response/ # DTOs de saída
 │  ├─ exception/ # Tratamento de exceções
-│  ├─ model/ # Entidades JPA
+│  ├─ model/ # Entidades
 │  ├─ repository/ # Acesso a dados (Native Queries)
 │  └─ service/ # Lógica de negócio
 ├─ src/main/resources/
@@ -226,6 +225,9 @@ backend/
 
 
 - **Native queries**: adotadas conforme exigência do desafio, permitindo maior controle sobre as consultas SQL e compreensão explícita das operações no banco de dados.
+
+
+- As _operações de persistência_ são feitas com SQL explícito via `JdbcTemplate`, garantindo total controle sobre as queries e cumprimento do requisito técnico.
 
 
 - `Lombok`: Uso de lombok para redução de código boilerplate, em prol de maior legibilidade e alinhamento com a convenção da stack.
