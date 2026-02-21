@@ -170,19 +170,19 @@ backend/
 - `id` (BIGSERIAL, PK)
 - `name` (VARCHAR, NOT NULL)
 - `email` (VARCHAR, UNIQUE, NOT NULL)
-- `created_at` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP)
+- `created_at` (TIMESTAMP WITH TIME ZONE, NOT NULL)
 
 **products**:
 - `id` (BIGSERIAL, PK)
 - `description` (VARCHAR, NOT NULL)
 - `price` (NUMERIC(12,2), NOT NULL)
 - `stock_quantity` (INTEGER, NOT NULL)
-- `created_at` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP)
+- `created_at` (TIMESTAMP WITH TIME ZONE, NOT NULL)
 
 **orders**:
 - `id` (BIGSERIAL, PK)
 - `customer_id` (BIGINT, FK → customers(id))
-- `order_date` (TIMESTAMP, DEFAULT CURRENT_TIMESTAMP)
+- `order_date` (TIMESTAMP WITH TIME ZONE, NOT NULL)
 - `total_amount` (NUMERIC(12,2), NOT NULL)
 
 **order_items**:
@@ -238,6 +238,9 @@ backend/
 
 
 - Para evitar conflito com a palavra reservada `ORDER` no SQL, optei por usar nomes de tabelas no **plural** (ex.: `orders`), garantindo uniformidade e evitando problemas de sintaxe. 
+
+
+- Optei por `TIMESTAMP WITH TIME ZONE` para armazenar datas mais precisa (UTC), evitando ambiguidades de fuso horário. E removi o `DEFAULT CURRENT_TIMESTAMP`, definindo o valor de criação unicamente no escopo da aplicação.
 
 ---
 
