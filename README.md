@@ -43,6 +43,7 @@ Sistema de _gerenciamento de clientes, produtos e pedidos_, desenvolvido como de
 - Flyway Migration
 - Spring Validation
 - Spring Boot DevTools
+- Lombok
 
 ### Frontend:
 - Stack tecnológica será definida em etapa posterior.
@@ -225,6 +226,9 @@ backend/
 
 
 - **Native queries**: adotadas conforme exigência do desafio, permitindo maior controle sobre as consultas SQL e compreensão explícita das operações no banco de dados.
+
+
+- `Lombok`: Uso de lombok para redução de código boilerplate, em prol de maior legibilidade e alinhamento com a convenção da stack.
 
 ### Banco de dados
 - `Flyway`: versionamento de banco de dados automatizado para garantir reprodutibilidade do banco e manter histórico auditável.
