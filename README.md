@@ -38,6 +38,7 @@ Sistema de _gerenciamento de clientes, produtos e pedidos_, desenvolvido como de
 
 #### Dependências:
 - Spring Web
+- Spring JDBC
 - PostgreSQL Driver
 - Flyway Migration
 - Spring Validation
