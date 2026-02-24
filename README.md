@@ -138,6 +138,7 @@ backend/
 │  │  ├── request/  # DTOs de entrada
 │  │  └── response/ # DTOs de saída
 │  ├─ exception/ # Tratamento de exceções
+│  │  └── domain/ # Exceções de domínio
 │  ├─ model/ # Entidades
 │  ├─ repository/ # Acesso a dados (Native Queries)
 │  └─ service/ # Lógica de negócio
