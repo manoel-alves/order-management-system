@@ -16,6 +16,7 @@
 * [🏗️ Arquitetura](#-arquitetura)
 * [📁 Estrutura do Projeto](#-estrutura-do-projeto)
 * [🗄️ Modelo de Dados](#-modelo-de-dados)
+* [💾 Scripts de Criação das Tabelas](#-scripts-de-criação-das-tabelas)
 * [🧪 Testes](#-testes)
 * [💡 Decisões Técnicas](#-decisões-técnicas)
 * [👤 Autor](#-autor)
@@ -173,37 +174,83 @@ backend/
 |   products   |        1:N        | order_items  | 
 
 ### Tabelas
+`customers`: id, name, email, created_at  
+`products`: id, description, price, stock_quantity, created_at  
+`orders`: id, customer_id, order_date, total_amount  
+`order_items`: id, order_id, product_id, quantity, unit_price, discount, total_price
 
-**customers**:
-- `id` (BIGSERIAL, PK)
-- `name` (VARCHAR, NOT NULL)
-- `email` (VARCHAR, UNIQUE, NOT NULL)
-- `created_at` (TIMESTAMP WITH TIME ZONE, NOT NULL)
+`Índice:` _idx_order_customer_id_ em _orders(customer_id)_
 
-**products**:
-- `id` (BIGSERIAL, PK)
-- `description` (VARCHAR, NOT NULL)
-- `price` (NUMERIC(12,2), NOT NULL)
-- `stock_quantity` (INTEGER, NOT NULL)
-- `created_at` (TIMESTAMP WITH TIME ZONE, NOT NULL)
+---
 
-**orders**:
-- `id` (BIGSERIAL, PK)
-- `customer_id` (BIGINT, FK → customers(id))
-- `order_date` (TIMESTAMP WITH TIME ZONE, NOT NULL)
-- `total_amount` (NUMERIC(12,2), NOT NULL)
+## 💾 Scripts de Criação das Tabelas
+Os scripts abaixo foram aplicados via `Flyway` em versões:
 
-**order_items**:
-- `id` (BIGSERIAL, PK)
-- `order_id` (BIGINT, FK → orders(id))
-- `product_id` (BIGINT, FK → products(id))
-- `quantity` (INTEGER, NOT NULL)
-- `unit_price` (NUMERIC(12,2), NOT NULL)
-- `discount` (NUMERIC(12,2), NOT NULL)
-- `total_price` (NUMERIC(12,2), NOT NULL)
+### V1__init.sql:
+
+```sql
+CREATE TABLE customers (
+    id BIGSERIAL PRIMARY KEY,
+    name VARCHAR(150) NOT NULL,
+    email VARCHAR(150) NOT NULL UNIQUE,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE products (
+    id BIGSERIAL PRIMARY KEY,
+    description VARCHAR(200) NOT NULL,
+    price NUMERIC(12,2) NOT NULL,
+    stock_quantity INTEGER NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE orders (
+    id BIGSERIAL PRIMARY KEY,
+    customer_id BIGINT NOT NULL REFERENCES customers(id) ON DELETE RESTRICT,
+    order_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    total_amount NUMERIC(12,2) NOT NULL
+);
+
+CREATE TABLE order_items (
+    id BIGSERIAL PRIMARY KEY,
+    order_id BIGINT NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+    product_id BIGINT NOT NULL REFERENCES products(id) ON DELETE RESTRICT,
+    quantity INTEGER NOT NULL,
+    unit_price NUMERIC(12,2) NOT NULL,
+    discount NUMERIC(12,2) NOT NULL,
+    total_price NUMERIC(12,2) NOT NULL
+);
+
+CREATE INDEX idx_order_customer_id ON orders(customer_id);
+```
+
+### V2__change_timestamp_to_timestamptz.sql:
+Converte timestamps para timestamptz garantindo armazenamento consistente e preciso com fuso horário.
+
+```sql
+ALTER TABLE customers
+ALTER COLUMN created_at TYPE TIMESTAMP WITH TIME ZONE
+    USING created_at AT TIME ZONE 'UTC';
+
+ALTER TABLE customers
+    ALTER COLUMN created_at DROP DEFAULT;
 
 
-**Índice**: `idx_order_customer_id` em `orders(customer_id)` para otimizar consultas por cliente.
+ALTER TABLE products
+ALTER COLUMN created_at TYPE TIMESTAMP WITH TIME ZONE
+    USING created_at AT TIME ZONE 'UTC';
+
+ALTER TABLE products
+    ALTER COLUMN created_at DROP DEFAULT;
+
+
+ALTER TABLE orders
+ALTER COLUMN order_date TYPE TIMESTAMP WITH TIME ZONE
+    USING order_date AT TIME ZONE 'UTC';
+
+ALTER TABLE orders
+    ALTER COLUMN order_date DROP DEFAULT;
+```
 
 ---
 
