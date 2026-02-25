@@ -60,12 +60,10 @@ public class Customer {
             throw new DomainValidationException("Nome vazio ou inexistente");
         }
 
-        String normalizedName = name.trim();
-
-        if (normalizedName.length() > NAME_MAX_LENGTH) {
+        if (name.length() > NAME_MAX_LENGTH) {
             throw new DomainValidationException("Nome excede " + NAME_MAX_LENGTH + " caracteres");
         }
-        if (!normalizedName.matches("^[\\p{L} ]+$")) {
+        if (!name.matches("^[\\p{L} ]+$")) {
             throw new DomainValidationException("Nome deve conter apenas letras e espaços");
         }
     }
@@ -76,11 +74,10 @@ public class Customer {
             throw new DomainValidationException("Email vazio ou inexistente");
         }
 
-        String normalizedEmail = email.trim();
-        if (normalizedEmail.length() > EMAIL_MAX_LENGTH) {
+        if (email.length() > EMAIL_MAX_LENGTH) {
             throw new DomainValidationException("Email excede " + EMAIL_MAX_LENGTH + " caracteres");
         }
-        if (!normalizedEmail.matches(EMAIL_REGEX)) {
+        if (!email.matches(EMAIL_REGEX)) {
             throw new DomainValidationException("Email com formato inválido");
         }
     }
