@@ -15,6 +15,7 @@
 * [🚀 Como Executar](#-como-executar)
 * [🏗️ Arquitetura](#-arquitetura)
 * [📁 Estrutura do Projeto](#-estrutura-do-projeto)
+* [📡 API Endpoints](#-api-endpoints)
 * [🗄️ Modelo de Dados](#-modelo-de-dados)
 * [💾 Scripts de Criação das Tabelas](#-scripts-de-criação-das-tabelas)
 * [🧪 Testes](#-testes)
@@ -165,6 +166,24 @@ backend/
 
 ### frontend
 - Será adicionado posteriormente.
+
+---
+
+## 📡 API Endpoints
+
+### Customer:
+
+| **Método** | **Endpoint**             | **Descrição**           | **Retorno**                                   |
+|:----------:|--------------------------|-------------------------|-----------------------------------------------|
+|   _POST_   | `/customers`             | Cria um novo cliente    | 201 + dados do cliente ou 400 em caso de erro |
+|   _GET_    | `/customers/{id}`        | Retorna cliente por ID  | 200 ou 404                                    |
+|   _GET_    | `/customers?name=<nome>` | Busca clientes por nome | Lista de clientes                             |
+|   _GET_    | `/customers`             | Lista todos os clientes | Lista de clientes                             |
+
+### Observações:
+- Mensagens de erro padronizadas em português
+- Endpoints de leitura (GET) não dependem de payload
+- Para testes automatizados, MockMvc e GlobalExceptionHandler são utilizados para validação de respostas
 
 ---
 
