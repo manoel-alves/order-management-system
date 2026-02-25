@@ -65,27 +65,31 @@ Sistema de _gerenciamento de clientes, produtos e pedidos_, desenvolvido como de
 ## 🚀 Como Executar
 
 ### Pré-requisitos
-   - `Docker` instalado.
-   - As seguintes _portas_ livres:
+   - `Docker` instalado e executando.
+   - _Portas_ livres:
      - `5432` -> PostgreSQL
-     - `8080` -> API
+     - `8080` -> Backend API
 
 ### Instruções
-1. Subindo a aplicação:
+1. **Subir** a aplicação:
     ```bash
-    docker compose up --build
+    docker compose up --build -d
     ```
-   - API disponível em: `http://localhost:8080`
+   - API disponível em: `http://localhost:8080/`
+
+2. **Parar** a aplicação:
+
+   - Parar containers:
+     ```bash
+     docker compose stop
+     ```
+  
+   - Remover containers:
+     ```bash
+     docker compose down 
+     ```
    
-   
-2. Parando a aplicação:
-- Parar a execução: pressione `CTRL + C`
-- Para remover containers e redes criadas:
-    ```bash
-    docker compose down 
-    ```
-   
-- Para remover volumes criados (deleta banco de dados):
+3. Resetar containers (deleta o banco de dados):
     ```bash
      docker compose down -v
      ```
