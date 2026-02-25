@@ -1,13 +1,4 @@
 services:
-    postgres:
-        image: postgres:18
-        environment:
-            POSTGRES_DB: order_management
-            POSTGRES_USER: postgres
-            POSTGRES_PASSWORD: postgres
-        ports:
-            - "5432:5432"
-
     backend-tests:
         build:
             context: ./backend
@@ -15,8 +6,19 @@ services:
         container_name: backend-tests
         restart: "no"
 
+    postgres:
+        image: postgres:18
+        container_name: postgres
+        environment:
+            POSTGRES_DB: order_management
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD: postgres
+        ports:
+            - "5432:5432"
+
     backend:
         build: ./backend
+        container_name: backend
         depends_on:
             - postgres
         environment:
