@@ -6,6 +6,7 @@ import br.com.manoel.ordermanagement.exception.domain.DomainValidationException;
 import br.com.manoel.ordermanagement.exception.domain.ResourceNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.time.Instant;
+import java.util.Objects;
 
 @Slf4j
 @RestControllerAdvice
@@ -109,10 +111,16 @@ public class GlobalExceptionHandler {
 
         log.error("Argument Not Valid Exception", ex);
 
+        String message = ex.getBindingResult().getFieldErrors().stream()
+                .map(DefaultMessageSourceResolvable::getDefaultMessage)
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse(ErrorMessages.INVALID_REQUEST);
+
         ApiError error = new ApiError(
                 HttpStatus.BAD_REQUEST.value(),
                 HttpStatus.BAD_REQUEST.getReasonPhrase(),
-                ErrorMessages.INVALID_REQUEST,
+                message,
                 request.getRequestURI(),
                 Instant.now()
         );

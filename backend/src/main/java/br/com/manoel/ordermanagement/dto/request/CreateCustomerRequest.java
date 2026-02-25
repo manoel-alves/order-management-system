@@ -5,12 +5,12 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 public record CreateCustomerRequest(
-        @NotBlank
+        @NotBlank(message = "Nome vazio ou inexistente")
         @Size(max = 150)
         String name,
 
-        @NotBlank
+        @NotBlank(message = "Email vazio ou inexistente")
         @Size(max = 150)
-        @Email
+        @Email(message = "Email com formato inválido")
         String email
 ) {}
