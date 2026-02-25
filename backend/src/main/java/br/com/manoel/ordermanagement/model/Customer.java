@@ -57,8 +57,17 @@ public class Customer {
         if (isNullOrBlank(name)) {
             throw new DomainValidationException("Nome vazio ou inexistente");
         }
-        if (name.trim().length() > NAME_MAX_LENGTH) {
+
+        String normalizedName = name.trim();
+
+        if (normalizedName.length() > NAME_MAX_LENGTH) {
             throw new DomainValidationException("Nome excede " + NAME_MAX_LENGTH + " caracteres");
+        }
+        if (!normalizedName.matches("^[\\p{L} ]+$")) {
+            throw new DomainValidationException("Nome deve conter apenas letras e espaços únicos");
+        }
+        if (normalizedName.contains("  ")) {
+            throw new DomainValidationException("Nome não pode conter espaços consecutivos");
         }
     }
 
@@ -75,6 +84,14 @@ public class Customer {
         if (!normalizedEmail.matches(EMAIL_REGEX)) {
             throw new DomainValidationException("Email com formato inválido");
         }
+    }
+
+    public static int getNameMaxLength() {
+        return NAME_MAX_LENGTH;
+    }
+
+    public static int getEmailMaxLength() {
+        return EMAIL_MAX_LENGTH;
     }
 
     // UTILS
