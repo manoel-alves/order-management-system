@@ -4,9 +4,21 @@ import br.com.manoel.ordermanagement.exception.domain.DomainValidationException;
 
 import org.junit.jupiter.api.Test;
 
+import java.time.Instant;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class CustomerTest {
+
+    // Test Instant injection
+    @Test
+    void createCustomer_withCustomCreatedAt_shouldRespectValue() {
+        Instant now = Instant.parse("2024-01-01T00:00:00Z");
+
+        Customer customer = new Customer("Valid Name", "valid@email.com", now);
+
+        assertEquals(now, customer.getCreatedAt());
+    }
 
     // Test customer creation
     @Test
@@ -37,18 +49,15 @@ class CustomerTest {
                 () -> new Customer("123", "valid@email.com")
         );
 
-        assertEquals("Nome deve conter apenas letras e espaços únicos", ex.getMessage());
+        assertEquals("Nome deve conter apenas letras e espaços", ex.getMessage());
     }
 
-    // Test double space between names in name
+    // Test name normalization
     @Test
-    void createCustomer_withDoubleSpaces_shouldThrow() {
-        DomainValidationException ex = assertThrows(
-                DomainValidationException.class,
-                () -> new Customer("Invalid  Name", "valid@email.com")
-        );
+    void createCustomer_nameWithExtraSpaces_shouldNormalize() {
+        Customer customer = new Customer(" Valid  Name ", "valid@email.com");
 
-        assertEquals("Nome não pode conter espaços consecutivos", ex.getMessage());
+        assertEquals("Valid Name", customer.getName());
     }
 
     // Test name that exceeds max length
@@ -70,6 +79,14 @@ class CustomerTest {
         );
 
         assertEquals("Email vazio ou inexistente", ex.getMessage());
+    }
+
+    // Test email normalization
+    @Test
+    void createCustomer_emailWithExtraSpaces_shouldNormalize() {
+        Customer customer = new Customer("Valid Name", " valid@email.com ");
+
+        assertEquals("valid@email.com", customer.getEmail());
     }
 
     // Test Email Validation

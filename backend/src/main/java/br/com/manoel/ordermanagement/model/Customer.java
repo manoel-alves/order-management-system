@@ -32,13 +32,15 @@ public class Customer {
         this(name, email, null);
     }
 
-    // Constructor for testing
+    // Constructor for testing (createdAt injection)
     public Customer(String name, String email,  Instant createdAt) {
+        name = normalizeString(name);
         validateName(name);
-        this.name = name.trim();
+        this.name = name;
 
+        email = normalizeString(email);
         validateEmail(email);
-        this.email = email.trim();
+        this.email = email;
 
         this.createdAt = (createdAt != null) ? createdAt : Instant.now();
     }
@@ -64,10 +66,7 @@ public class Customer {
             throw new DomainValidationException("Nome excede " + NAME_MAX_LENGTH + " caracteres");
         }
         if (!normalizedName.matches("^[\\p{L} ]+$")) {
-            throw new DomainValidationException("Nome deve conter apenas letras e espaços únicos");
-        }
-        if (normalizedName.contains("  ")) {
-            throw new DomainValidationException("Nome não pode conter espaços consecutivos");
+            throw new DomainValidationException("Nome deve conter apenas letras e espaços");
         }
     }
 
@@ -86,6 +85,7 @@ public class Customer {
         }
     }
 
+    // Constants Getters
     public static int getNameMaxLength() {
         return NAME_MAX_LENGTH;
     }
@@ -97,6 +97,11 @@ public class Customer {
     // UTILS
     private static boolean isNullOrBlank( String string ) {
         return (string == null || string.isBlank());
+    }
+
+    private String normalizeString(String string) {
+        if (isNullOrBlank(string)) return string;
+        return string.trim().replaceAll(" {2,}", " ");
     }
 
     // EQUALS and HASHCODE
