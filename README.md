@@ -16,6 +16,7 @@
 * [🏗️ Arquitetura](#-arquitetura)
 * [📁 Estrutura do Projeto](#-estrutura-do-projeto)
 * [🗄️ Modelo de Dados](#-modelo-de-dados)
+* [🧪 Testes](#-testes)
 * [💡 Decisões Técnicas](#-decisões-técnicas)
 * [👤 Autor](#-autor)
 
@@ -112,6 +113,10 @@ Controller -> Service -> Repository
 ### Infraestrutura
 - Containerização via Docker
 - Orquestração dos serviços com Docker Compose
+- Serviços configurados no `docker-compose.yml`:
+  - `postgres` -> postgres:18
+  - `backend-tests` -> Container para execução isolada de testes unitários.
+  - `backend` -> Container principal da API
 
 ---
 
@@ -199,6 +204,56 @@ backend/
 
 
 **Índice**: `idx_order_customer_id` em `orders(customer_id)` para otimizar consultas por cliente.
+
+---
+
+## 🧪 Testes
+### Testes Unitários:
+O backend possui **testes unitários** implementados, garantindo cobertura para as entidades do sistema, incluindo validações de domínio, regras de negócio e endpoints REST.
+
+#### Customer:
+- `Customer (Model)`:
+  - Criação de clientes válidos
+  - Validação de nome:
+    - Não pode ser nulo ou vazio
+    - Apenas letras e espaços únicos
+    - Tamanho máximo permitido
+  - Validação de email:
+    - Não pode ser nulo ou vazio
+    - Formato válido
+    - Tamanho máximo permitido
+  - Regras de mutabilidade do ID (não pode ser alterado após definido)
+
+
+- `CustomerService`:
+  - Criação de clientes com dados válidos
+  - Criação com dados inválidos dispara `DomainValidationException`
+  - Busca por ID:
+    - Retorna cliente existente
+    - Dispara `ResourceNotFoundException` para ID inexistente
+  - Busca por nome:
+    - Retorna lista de clientes correspondentes
+    - Retorna lista vazia quando não há correspondência
+  - Listagem de todos os clientes
+
+
+- `CustomerController`: endpoints REST de POST e GET, incluindo:
+  - `POST /customers`:
+    - Criação de cliente válido retorna `201` com dados do cliente
+    - Dados inválidos retornam `400` com mensagem de erro adequada
+  - `GET /customers/{id}`:
+    - Cliente existente retorna `200` com dados do cliente
+    - Cliente inexistente retorna `404` com mensagem de erro
+  - `GET /customers?name=<nome>`:
+    - Retorna lista de clientes correspondentes
+    - Retorna lista vazia se não houver correspondência
+  - `GET /customers`:
+    - Retorna lista de todos os clientes
+    - Retorna lista vazia se não houver clientes cadastrados
+
+#### Observações
+- Testes de Controller utilizam `MockMvc` e `GlobalExceptionHandler`
+- Testes de serviço e modelo são isolados e não dependem de banco de dados
 
 ---
 
