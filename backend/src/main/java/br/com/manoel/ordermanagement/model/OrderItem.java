@@ -1,6 +1,7 @@
 package br.com.manoel.ordermanagement.model;
 
 import br.com.manoel.ordermanagement.exception.domain.DomainValidationException;
+
 import lombok.Getter;
 import lombok.ToString;
 
@@ -15,7 +16,7 @@ public class OrderItem {
     private Long id;
 
     @Getter
-    private final Product product;
+    private final Long productId;
 
     @Getter
     private final int quantity;
@@ -29,27 +30,28 @@ public class OrderItem {
     @Getter
     private final BigDecimal totalPrice;
 
-    public OrderItem(Product product, int quantity, BigDecimal discount) {
+    public OrderItem(Long productId, int quantity,BigDecimal unitPrice , BigDecimal discount) {
 
-        if (product == null) {
+        if (productId == null) {
             throw new DomainValidationException("Produto não pode ser nulo");
         }
-        this.product = product;
+        this.productId = productId;
 
         validateQuantity(quantity);
         this.quantity = quantity;
 
-        this.unitPrice = this.product.getPrice().setScale(MONEY_SCALE, MONEY_ROUNDING);
+        if (unitPrice == null || unitPrice.compareTo(BigDecimal.ZERO) < 0) {
+            throw new DomainValidationException("Preço unitário inválido");
+        }
+        this.unitPrice = unitPrice.setScale(MONEY_SCALE, MONEY_ROUNDING);
 
-        BigDecimal effectiveDiscount =
-                discount != null ? discount : BigDecimal.ZERO;
-
+        BigDecimal effectiveDiscount = discount != null ? discount : BigDecimal.ZERO;
         effectiveDiscount = effectiveDiscount.setScale(MONEY_SCALE, MONEY_ROUNDING);
 
-        validateDiscount(effectiveDiscount, getSubtotal(this.quantity));
+        validateDiscount(effectiveDiscount, getSubtotal(quantity));
         this.discount = effectiveDiscount;
 
-        this.totalPrice =  getSubtotal(this.quantity).subtract(this.discount).setScale(MONEY_SCALE, MONEY_ROUNDING);
+        this.totalPrice =  getSubtotal(quantity).subtract(effectiveDiscount).setScale(MONEY_SCALE, MONEY_ROUNDING);
     }
 
     public void setId(Long id) {
@@ -65,11 +67,11 @@ public class OrderItem {
         }
     }
 
-    private void  validateDiscount(BigDecimal discount, BigDecimal value) {
-        if (discount == null || discount.compareTo(BigDecimal.ZERO) < 0) {
+    private void  validateDiscount(BigDecimal discount, BigDecimal subtotal) {
+        if (discount.compareTo(BigDecimal.ZERO) < 0) {
             throw new DomainValidationException("Desconto inválido");
         }
-        if(discount.compareTo(value) > 0) {
+        if(discount.compareTo(subtotal) > 0) {
             throw new DomainValidationException("Desconto não pode exceder o subtotal");
         }
     }
@@ -79,17 +81,17 @@ public class OrderItem {
                 .setScale(MONEY_SCALE, MONEY_ROUNDING);
     }
 
-    // EQUALS and HASHCODE -> based on product
+    // EQUALS and HASHCODE
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
         if (!(obj instanceof OrderItem other)) return false;
 
-        return this.product.equals(other.getProduct());
+        return this.productId.equals(other.getProductId());
     }
 
     @Override
     public int hashCode() {
-        return product.hashCode();
+        return productId.hashCode();
     }
 }
