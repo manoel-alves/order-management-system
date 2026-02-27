@@ -79,6 +79,18 @@ public class JdbcProductRepository implements ProductRepository {
         );
     }
 
+    @Override
+    public boolean decrementStock(Long productId, int amount) {
+        String sql = """
+            UPDATE products
+            SET stock_quantity = stock_quantity - ?
+            WHERE id = ? AND stock_quantity >= ?
+        """;
+
+        int updatedRows = jdbcTemplate.update(sql, amount, productId, amount);
+        return updatedRows > 0;
+    }
+
     private Product mapRow(ResultSet rs) throws SQLException {
         Product product = new Product(
                 rs.getString("description"),

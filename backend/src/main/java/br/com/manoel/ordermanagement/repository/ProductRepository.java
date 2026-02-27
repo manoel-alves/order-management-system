@@ -14,4 +14,6 @@ public interface ProductRepository {
     List<Product> findByDescription(String description);
 
     List<Product> findAll();
+
+    boolean decrementStock(Long productId, int amount);
 }
