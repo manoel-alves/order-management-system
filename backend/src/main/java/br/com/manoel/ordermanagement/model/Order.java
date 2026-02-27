@@ -20,7 +20,7 @@ public class Order {
     private Long id;
 
     @Getter
-    private final Customer customer;
+    private final Long customerId;
 
     @Getter
     private final Instant orderDate;
@@ -30,23 +30,24 @@ public class Order {
 
     private final List<OrderItem> items = new ArrayList<>();
 
-    @Getter
-    private boolean confirmed = false;
-
-    // CONSTRUCTOR
-    // Main constructor
-    public Order(Customer customer) {
-        this(customer, null);
+    // CONSTRUCTORS
+    public Order(Long customerId) {
+        this(customerId, Instant.now(), null);
     }
 
-    // Constructor for testing
-    public Order(Customer customer, Instant orderDate) {
-        validateCustomer(customer);
-        this.customer = customer;
+    public Order(Long customerId, Instant orderDate, List<OrderItem> items) {
+        validateCustomer(customerId);
+        this.customerId = customerId;
 
         this.orderDate = (orderDate != null) ? orderDate : Instant.now();
 
-        this.totalAmount = BigDecimal.ZERO.setScale(MONEY_SCALE, MONEY_ROUNDING);
+        if (items != null) {
+            for (OrderItem item : items) {
+                addItemInternal(item);
+            }
+        }
+
+        recalculateTotal();
     }
 
     // METHODS
@@ -59,63 +60,52 @@ public class Order {
     }
 
     // customer
-    private void validateCustomer(Customer customer) {
-        if (customer == null) {
-            throw new DomainValidationException("Cliente não pode ser nulo");
+    private void validateCustomer(Long customerId) {
+        if (customerId == null) {
+            throw new DomainValidationException("O ID de cliente não pode ser nulo");
         }
     }
 
     // items
-    public void addItem(Product product, int quantity) {
-        addItem(product, quantity, BigDecimal.ZERO);
-    }
-    public void addItem(Product product, int quantity, BigDecimal discount) {
-
-        ensureNotConfirmed();
-        validateAddItemInput(product, quantity);
-
-        BigDecimal effectiveDiscount = discount != null ? discount : BigDecimal.ZERO;
-
-        Optional<OrderItem> existingOpt = findItemByProduct(product);
-
-        OrderItem newItem;
-
-        if (existingOpt.isPresent()) {
-            OrderItem existing = existingOpt.get();
-
-            int newQuantity = existing.getQuantity() + quantity;
-            BigDecimal newDiscount = existing.getDiscount().max(effectiveDiscount);
-
-            newItem = new OrderItem(product, newQuantity, newDiscount);
-
-            items.remove(existing); // remove apenas o que existe
-        } else {
-            newItem = new OrderItem(product, quantity, effectiveDiscount);
-        }
-
-        if (!product.hasStock(newItem.getQuantity())) {
-            throw new DomainValidationException(
-                    "Estoque insuficiente para o produto: " + product.getDescription()
-            );
-        }
-
-        items.add(newItem);
+    public void addItem(OrderItem item) {
+        ensureNotPersisted();
+        addItemInternal(item);
         recalculateTotal();
     }
 
-    private void validateAddItemInput(Product product, int quantity) {
-        if (product == null) {
-            throw new DomainValidationException("Produto não pode ser nulo");
-        }
+    private void addItemInternal(OrderItem item) {
+        if (item == null) throw new DomainValidationException("Item não pode ser nulo");
 
-        if (quantity <= 0) {
-            throw new DomainValidationException("Quantidade deve ser maior que zero");
+        Optional<OrderItem> existingOpt = findItemByProductId(item.getProductId());
+        if (existingOpt.isPresent()) {
+            OrderItem existing = existingOpt.get();
+
+            if (existing.getUnitPrice().compareTo(item.getUnitPrice()) != 0) {
+                throw new DomainValidationException(
+                        "Preço unitário divergente para o mesmo produto"
+                );
+            }
+
+            int newQuantity = existing.getQuantity() + item.getQuantity();
+            BigDecimal newDiscount = existing.getDiscount().max(item.getDiscount());
+
+            OrderItem merged = new OrderItem(
+                    item.getProductId(),
+                    newQuantity,
+                    item.getUnitPrice(),
+                    newDiscount
+            );
+
+            items.remove(existing);
+            items.add(merged);
+        } else {
+            items.add(item);
         }
     }
 
-    private Optional<OrderItem> findItemByProduct(Product product) {
+    private Optional<OrderItem> findItemByProductId(Long productId) {
         return items.stream()
-                .filter(item -> item.getProduct().equals(product))
+                .filter(i -> i.getProductId().equals(productId))
                 .findFirst();
     }
 
@@ -131,24 +121,9 @@ public class Order {
                 .setScale(MONEY_SCALE, MONEY_ROUNDING);
     }
 
-    // Products stock update
-    public void confirmOrder() {
-        ensureNotConfirmed();
-
-        if (items.isEmpty()) {
-            throw new DomainValidationException("Pedido não possui itens");
-        }
-
-        for (OrderItem item : items) {
-            Product product = item.getProduct();
-            product.removeStock(item.getQuantity());
-        }
-        this.confirmed = true;
-    }
-
-    private void ensureNotConfirmed() {
-        if (confirmed) {
-            throw new DomainValidationException("Pedido já confirmado");
+    private void ensureNotPersisted() {
+        if (this.id != null) {
+            throw new DomainValidationException("Pedido já persistido");
         }
     }
 
