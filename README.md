@@ -26,7 +26,7 @@
 
 ## 📋 Sobre
 
-Sistema de _gerenciamento de clientes, produtos e pedidos_, desenvolvido como desafio técnico para a vaga de **Analista de Sistemas de Computação** na [SergipeTec](https://sergipetec.org.br).
+Sistema para gerenciamento de **clientes**, **produtos** e **pedidos**, desenvolvido como desafio técnico para a vaga de **Analista de Sistemas de Computação** na [SergipeTec](https://sergipetec.org.br).
 
 ---
 
@@ -45,7 +45,6 @@ Sistema de _gerenciamento de clientes, produtos e pedidos_, desenvolvido como de
 - PostgreSQL Driver
 - Flyway Migration
 - Spring Validation
-- Spring Boot DevTools
 - Lombok
 
 ### Frontend:
@@ -56,7 +55,10 @@ Sistema de _gerenciamento de clientes, produtos e pedidos_, desenvolvido como de
 |:--------------:|:----------:|
 |   PostgreSQL   |     18     |
 
+- Executado em container via Docker Compose
+
 ### Infraestrutura:
+- Docker
 - Docker Compose 
   - PostgreSQL:18 (full-image)
   - Container backend: build multi-estágio (Maven + Eclipse Temurin JDK 21)
@@ -66,34 +68,37 @@ Sistema de _gerenciamento de clientes, produtos e pedidos_, desenvolvido como de
 ## 🚀 Como Executar
 
 ### Pré-requisitos
-   - `Docker` instalado e executando.
-   - _Portas_ livres:
-     - `5432` -> PostgreSQL
-     - `8080` -> Backend API
-
-### Instruções
-1. **Subir** a aplicação:
-    ```bash
-    docker compose up --build -d
-    ```
-   - API disponível em: `http://localhost:8080/`
-
-2. **Parar** a aplicação:
-
-   - Parar containers:
-     ```bash
-     docker compose stop
-     ```
   
-   - Remover containers:
-     ```bash
-     docker compose down 
-     ```
+  - Git
+  - Docker em execução
+  - Portas livres:
+    - `5432` (PostgreSQL)
+    - `8080` (Backend API)
+
+### Executar aplicação:
+
+```bash
+git clone https://github.com/manoel-alves/order-management-system.git
+cd order-management-system
+docker compose up --build -d
+```
+- API disponível em: `http://localhost:8080/`
+
+### Parar aplicação:
+
+```bash
+docker compose stop
+```
+  
+#### Remover containers:
+```bash
+docker compose down 
+```
    
-3. Resetar containers (deleta o banco de dados):
-    ```bash
-     docker compose down -v
-     ```
+#### Resetar banco (remove volumes):
+```bash
+docker compose down -v
+```
 
 ---
 
@@ -107,9 +112,10 @@ Controller -> Service -> Repository
 ```
 
 #### Responsabilidades:
-- `Controller` → Exposição de endpoints REST
+- `Controller` → exposição REST e mapeamento DTO
 - `Service` → Regras de negócio
-- `Repository` → Acesso ao banco via Native Queries
+- `Repository` → Acesso ao banco via Native Queries (JdbcTemplate)
+- `Mapper` → conversão entre domínio e DTO
 - `DTO` → Padronização de entrada e saída
 - `Exception` → Tratamento global de erros
 
@@ -142,8 +148,6 @@ order-management-system/ # Raiz do projeto (monorepo)
 ```bash
 backend/ 
 ├─ src/main/java/br/com/manoel/ordermanagement/
-│  ├─ OrderManagementSystemApplication.java # Ponto de entrada do Spring Boot
-│  ├─ config/ # Configurações gerais
 │  ├─ controller/ # Endpoints REST
 │  ├─ dto/ # Padronização de Requests e Responses
 │  │  ├── request/  # DTOs de entrada
@@ -152,15 +156,18 @@ backend/
 │  │  ├── api/  # Exceções de API
 │  │  ├── domain/ # Exceções de domínio
 │  │  └── GlobalExceptionHandler.java # Tratamento global de exceções
-│  ├─ model/ # Entidades
+│  ├─ mapper/ # Conversão domínio → DTO
+│  ├─ model/ # Entidades e regras de domínio
 │  ├─ repository/ # Acesso a dados (Native Queries)
-│  └─ service/ # Lógica de negócio
+│  ├─ service/ # Regras de negócio
+│  └─ OrderManagementSystemApplication.java # Ponto de entrada do Spring Boot
 ├─ src/main/resources/
 │  ├─ db.migration/ # migrations do flyway
 │  └─ application.yml # Configurações do Spring Boot 
-├─ src/test/java/ # Testes unitários e de integração (planejados)
+├─ src/test/java/ # Testes unitários e de integração
 ├─ .gitignore # Ignores específicos do backend
 ├─ Dockerfile # instruções do container backend
+├─ Dockerfile.test # instruções do container de testes
 └─ pom.xml # Gerenciamento de dependências e build
 ```
 
@@ -180,10 +187,33 @@ backend/
 |   _GET_    | `/customers?name=<nome>` | Busca clientes por nome | Lista de clientes                             |
 |   _GET_    | `/customers`             | Lista todos os clientes | Lista de clientes                             |
 
+### Product:
+
+| **Método** | **Endpoint**                   | **Descrição**                | **Retorno**                                   |
+|:----------:|--------------------------------|------------------------------|-----------------------------------------------|
+|   *POST*   | `/products`                    | Cria um novo produto         | 201 + dados do produto ou 400 em caso de erro |
+|   *GET*    | `/products/{id}`               | Retorna produto por ID       | 200 ou 404                                    |
+|   *GET*    | `/products?description=<desc>` | Busca produtos por descrição | Lista de produtos                             |
+|   *GET*    | `/products`                    | Lista todos os produtos      | Lista de produtos                             |
+
+### Order:
+
+| **Método** | **Endpoint**                              | **Descrição**                        | **Retorno**                                  |
+|:----------:|-------------------------------------------|--------------------------------------|----------------------------------------------|
+|   *POST*   | `/orders`                                 | Cria um novo pedido                  | 201 + dados do pedido ou 400 em caso de erro |
+|   *GET*    | `/orders/{id}`                            | Retorna pedido por ID                | 200 ou 404                                   |
+|   *GET*    | `/orders`                                 | Lista todos os pedidos               | Lista de pedidos                             |
+|   *GET*    | `/orders?customerId=<id>`                 | Busca pedidos por cliente            | Lista de pedidos                             |
+|   *GET*    | `/orders?productId=<id>`                  | Busca pedidos por produto            | Lista de pedidos                             |
+|   *GET*    | `/orders/by-period?start=<iso>&end=<iso>` | Busca pedidos por intervalo de datas | Lista de pedidos                             |
+|   *GET*    | `/orders/total?customerId=<id>`           | Retorna total de pedidos por cliente | Valor total (BigDecimal)                     |
+
 ### Observações:
-- Mensagens de erro padronizadas em português
-- Endpoints de leitura (GET) não dependem de payload
-- Para testes automatizados, MockMvc e GlobalExceptionHandler são utilizados para validação de respostas
+- Todas as requisições **POST** utilizam validação via _Bean Validation_
+- Respostas de erro seguem padrão definido pelo **GlobalExceptionHandler**
+- _Header Location_ é retornado em operações de criação (201 Created)
+- _Datas_ devem ser enviadas no formato **ISO-8601** (YYYY-MM-DDTHH:mm:ssZ)
+- Endpoints de leitura (**GET**) não exigem payload
 
 ---
 
@@ -278,100 +308,94 @@ ALTER TABLE orders
 ---
 
 ## 🧪 Testes
-### Testes Unitários:
-O backend possui **testes unitários** implementados, garantindo cobertura para as entidades do sistema, incluindo validações de domínio, regras de negócio e endpoints REST.
 
-#### Customer:
-- `Customer (Model)`:
-  - Criação de clientes válidos
-  - Validação de nome:
-    - Não pode ser nulo ou vazio
-    - Apenas letras e espaços únicos
-    - Tamanho máximo permitido
-  - Validação de email:
-    - Não pode ser nulo ou vazio
-    - Formato válido
-    - Tamanho máximo permitido
-  - Regras de mutabilidade do ID (não pode ser alterado após definido)
+O backend possui **testes unitários** implementados cobrindo:
 
+- `Models`: validações e regras de negócio
+- `Services`: fluxos de criação, validações, exceções e integrações entre camadas
+- `Controllers`: contratos HTTP, status codes, headers e tratamento global de erros
 
-- `CustomerService`:
-  - Criação de clientes com dados válidos
-  - Criação com dados inválidos dispara `DomainValidationException`
-  - Busca por ID:
-    - Retorna cliente existente
-    - Dispara `ResourceNotFoundException` para ID inexistente
-  - Busca por nome:
-    - Retorna lista de clientes correspondentes
-    - Retorna lista vazia quando não há correspondência
-  - Listagem de todos os clientes
+Os testes são isolados e não dependem de banco de dados real.
 
+### Tecnologias utilizadas
+- JUnit 5
+- Mockito
+- MockMvc
 
-- `CustomerController`: endpoints REST de POST e GET, incluindo:
-  - `POST /customers`:
-    - Criação de cliente válido retorna `201` com dados do cliente
-    - Dados inválidos retornam `400` com mensagem de erro adequada
-  - `GET /customers/{id}`:
-    - Cliente existente retorna `200` com dados do cliente
-    - Cliente inexistente retorna `404` com mensagem de erro
-  - `GET /customers?name=<nome>`:
-    - Retorna lista de clientes correspondentes
-    - Retorna lista vazia se não houver correspondência
-  - `GET /customers`:
-    - Retorna lista de todos os clientes
-    - Retorna lista vazia se não houver clientes cadastrados
-
-#### Observações
-- Testes de Controller utilizam `MockMvc` e `GlobalExceptionHandler`
-- Testes de serviço e modelo são isolados e não dependem de banco de dados
+### Execução manual:
+```bash
+cd backend
+mvn clean test
+```
 
 ---
 
 ## 💡 Decisões Técnicas
 
 ### Gerais:
-- `Monorepo`: centraliza backend e frontend, simplificando builds e versionamento, se adequando ao escopo simples do projeto.
+- **Monorepo**: centraliza backend e frontend, simplificando builds e versionamento, se adequando ao escopo simples do projeto.
 
 
-- Containerização via `Docker Compose`: garante que a aplicação possa ser reproduzida facilmente em qualquer ambiente, de maneira consistente, independente do ambiente de execução.
+- **Containerização via Docker Compose**: garante que a aplicação possa ser reproduzida facilmente em qualquer ambiente, de maneira consistente, independente do ambiente de execução.
 
 
-- `Padronização de Idioma`:
-   - O **código** será escrito em _inglês_ para garantir clareza semântica e melhor legibilidade.
-   - As **mensagens de Commit** serão escritas em _inglês_ para garantir alinhamento com o código e conformidade com o padrão Conventional Commits.
-   - A **documentação** será mantida em _português_, considerando o público avaliador.
-   - **Mensagens** de validação e erro serão em _português_ a fim de se adequar ao público-alvo primário.
-   - **Internacionalização (i18n)** não será implementada devido ao escopo e prazo do projeto.
+- **Conventional Commits**: para garantir organização, clareza e uniformidade entre os commits. Seguindo o padrão `tipo(escopo): descrição` com body descritivo.
 
 
-- `Padrão de Commits`: será usado o padrão **conventional commits** para garantir organização, clareza e uniformidade. 
+- **Padronização de Idioma**:
+   - **Código**: escrito em _inglês_ para garantir clareza semântica e melhor legibilidade.
+   - **Mensagens de Commit**: escritas em _inglês_ para garantir alinhamento técnico com o código e conformidade com o padrão Conventional Commits.
+   - **Documentação**: escrita em _português_, considerando o público avaliador.
+   - **Mensagens de exceção** (validação e erro): escritas em _português_ a fim de se adequar ao público-alvo que serão usuários finais.
+   - _Internacionalização (i18n)_ **não será implementada** devido ao escopo e prazo do projeto.
+
 
 ### Backend:
-- **arquitetura em camadas** (Controller → Service → Repository) para garantir separação de responsabilidades e facilitar manutenção.
+
+- **Spring Boot**: adotado por ser um ecossistema Java maduro e amplamente reconhecido, reduzindo o overhead de compreensão da stack, permitindo maior foco nas regras de negócio. Além disso, a auto-configuração contribui para a consistência e previsibilidade do ambiente.
 
 
-- Uso de `DTOs`: para evitar acoplamento direto ao modelo de persistência e permitir maior controle sobre dados expostos.
+- **Arquitetura em camadas (Controller → Service → Repository)**: Garante separação clara de responsabilidades:
+  - Controller: camada de exposição HTTP
+  - Service: regras de negócio e orquestração
+  - Repository: acesso a dados
 
 
-- **Native queries**: adotadas conforme exigência do desafio, permitindo maior controle sobre as consultas SQL e compreensão explícita das operações no banco de dados.
+- **Mappers dedicados**: Convertem entidades de domínio para DTOs de resposta, evitando expor o modelo interno diretamente e mantém o Controller limpo.
 
 
-- As _operações de persistência_ são feitas com SQL explícito via `JdbcTemplate`, garantindo total controle sobre as queries e cumprimento do requisito técnico.
+- **DTOs**: para evitar acoplamento direto ao modelo de persistência e permitir maior controle sobre dados expostos.
 
 
-- `Lombok`: Uso de lombok para redução de código boilerplate, em prol de maior legibilidade e alinhamento com a convenção da stack.
+- **JdbcTemplate**: adotado para atender ao requisito do desafio de uso de native queries, garantindo controle explícito sobre as consultas SQL e maior previsibilidade do fluxo de persistência.
+  - ORM (JPA/Hibernate) poderia ser uma alternativa viável para esse sistema em outro contexto, devido à simplicidade das operações requisitadas, já que simplifica o mapeamento de relacionamentos e reduz boilerplate, permitindo maior foco nas regras de negócio e na organização do domínio.
+
+
+- **Validações em múltiplas camadas**: visa garantir que as regras de negócio sejam resguardadas independentemente da camada de entrada. 
+  - _Bean Validation_ para validação estrutural de requisições
+  - _Validação de domínio_ nas entidades e serviços
+  - Tratamento centralizado de exceções via _GlobalExceptionHandler_
+
+
+- **Lombok**: utilizado exclusivamente para getters/toString, sem geração automática de CRUD ou código estrutural.
+
 
 ### Banco de dados
-- `Flyway`: versionamento de banco de dados automatizado para garantir reprodutibilidade do banco e manter histórico auditável.
+
+- **PostgreSQL**: banco de dados relacional conforme requisito do desafio, usado devido à maior familiaridade e domínio diante das demais opções. 
 
 
-- `BIGSERIAL vs UUID`: optou-se por `BIGSERIAL` (autoincrement) por simplicidade, melhor desempenho e adequação ao escopo (sistema single-database).
+- **Flyway**: para versionamento de banco de dados automatizado, garantindo reprodutibilidade e histórico auditável.
 
 
-- Para evitar conflito com a palavra reservada `ORDER` no SQL, optei por usar nomes de tabelas no **plural** (ex.: `orders`), garantindo uniformidade e evitando problemas de sintaxe. 
+- **BIGSERIAL (autoincrement)**: adotado por ser simples e ter baixo custo de indexação, sendo mais eficiente diante do cenário single-database do desafio. Além de facilitar auditoria e debug.
 
 
-- Optei por `TIMESTAMP WITH TIME ZONE` para armazenar datas mais precisa (UTC), evitando ambiguidades de fuso horário. E removi o `DEFAULT CURRENT_TIMESTAMP`, definindo o valor de criação unicamente no escopo da aplicação.
+- **Nomes de tabelas**: para evitar conflito com a palavra reservada `ORDER` no SQL, optei por nomeá-las no **plural** (ex.: `orders`), garantindo uniformidade e evitando problemas de sintaxe. 
+
+
+- **TIMESTAMP WITH TIME ZONE (UTC)**: adotado para armazenar datas no padrão UTC, garantindo maior precisão e evitando ambiguidades de fuso horário.
+  - DEFAULT CURRENT_TIMESTAMP foi removido a fim de delegar controle exclusivo da definição de timestamps à aplicação.
 
 ---
 
