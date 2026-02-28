@@ -1,12 +1,12 @@
 package br.com.manoel.ordermanagement.service;
 
+import br.com.manoel.ordermanagement.dto.request.CreateProductRequest;
 import br.com.manoel.ordermanagement.exception.domain.DomainValidationException;
 import br.com.manoel.ordermanagement.exception.domain.ResourceNotFoundException;
 import br.com.manoel.ordermanagement.model.Product;
 import br.com.manoel.ordermanagement.repository.ProductRepository;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -19,20 +19,27 @@ public class ProductService {
     }
 
     // CREATE
-    public Product create(String description, BigDecimal price, int stockQuantity) {
-        Product product = new Product(description, price, stockQuantity);
+    public Product create(CreateProductRequest request) {
+        Product product = new Product(request.description(), request.price(), request.stockQuantity());
         return repository.save(product);
     }
 
     // READ
     // Get by ID
     public Product findById(Long id) {
+        if (id == null) {
+            throw new DomainValidationException("productId não pode ser nulo");
+        }
+
         return repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado"));
     }
 
     // Get by description
     public List<Product> findByDescription(String description) {
+        if (description == null) {
+            throw new DomainValidationException("description não pode ser nulo");
+        }
         return repository.findByDescription(description);
     }
 
@@ -42,8 +49,12 @@ public class ProductService {
     }
 
     public void decrementStock(Long productId, int amount) {
-        if (productId == null) throw new DomainValidationException("productId não pode ser nulo");
-        if (amount <= 0) throw new DomainValidationException("O valor deve ser maior que zero");
+        if (productId == null) {
+            throw new DomainValidationException("productId não pode ser nulo");
+        }
+        if (amount <= 0) {
+            throw new DomainValidationException("amount deve ser maior que zero");
+        }
 
         boolean updated = repository.decrementStock(productId, amount);
         if (!updated) {

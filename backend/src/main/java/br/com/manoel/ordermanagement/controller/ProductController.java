@@ -2,12 +2,14 @@ package br.com.manoel.ordermanagement.controller;
 
 import br.com.manoel.ordermanagement.dto.request.CreateProductRequest;
 import br.com.manoel.ordermanagement.dto.response.ProductResponse;
+import br.com.manoel.ordermanagement.mapper.ProductMapper;
 import br.com.manoel.ordermanagement.model.Product;
 import br.com.manoel.ordermanagement.service.ProductService;
 
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
 import java.util.List;
@@ -26,57 +28,42 @@ public class ProductController {
     @PostMapping
     public ResponseEntity<ProductResponse> create(@Valid @RequestBody CreateProductRequest request) {
 
-        Product product = service.create(
-                request.description(),
-                request.price(),
-                request.stockQuantity()
-        );
+        Product product = service.create(request);
 
-        ProductResponse response = toResponse(product);
+        URI location = ServletUriComponentsBuilder
+                .fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(product.getId())
+                .toUri();
 
-        return ResponseEntity.created(URI.create("/products/" + product.getId())).body(response);
+        return ResponseEntity
+                .created(location)
+                .body(ProductMapper.toResponse(product));
     }
 
     // READ
     // Get by ID
     @GetMapping("/{id}")
     public ResponseEntity<ProductResponse> getById(@PathVariable Long id) {
-        Product product = service.findById(id);
-
-        return ResponseEntity.ok(toResponse(product));
+        return ResponseEntity.ok(
+                ProductMapper.toResponse(service.findById(id))
+        );
     }
 
-    // Get by Description (partial match)
+    // Get by Description
     @GetMapping(params = "description")
     public ResponseEntity<List<ProductResponse>> getByDescription(@RequestParam String description) {
-
-        List<ProductResponse> response = service.findByDescription(description)
-                .stream()
-                .map(this::toResponse)
-                .toList();
-
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(toResponseList(service.findByDescription(description)));
     }
 
     // List all products
     @GetMapping
     public ResponseEntity<List<ProductResponse>> getAll() {
-        List<ProductResponse> response = service.findAll()
-                .stream()
-                .map(this::toResponse)
-                .toList();
-
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(toResponseList(service.findAll()));
     }
 
-    // UTILS
-    private ProductResponse toResponse(Product product) {
-        return new ProductResponse(
-                product.getId(),
-                product.getDescription(),
-                product.getPrice(),
-                product.getStockQuantity(),
-                product.getCreatedAt()
-        );
+    // INTERNAL HELPER
+    private static List<ProductResponse> toResponseList(List<Product> products) {
+        return products.stream().map(ProductMapper::toResponse).toList();
     }
 }

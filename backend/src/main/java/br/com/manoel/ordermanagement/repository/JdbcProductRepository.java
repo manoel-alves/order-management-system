@@ -1,6 +1,7 @@
 package br.com.manoel.ordermanagement.repository;
 
 import br.com.manoel.ordermanagement.model.Product;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -43,15 +44,14 @@ public class JdbcProductRepository implements ProductRepository {
 
     @Override
     public Optional<Product> findById(Long id) {
-        String sql = "SELECT * FROM products WHERE id = ?";
+        String sql = "SELECT id, description, price, stock_quantity, created_at FROM products WHERE id = ?";
 
-        List<Product> result = jdbcTemplate.query(
-                sql,
-                (rs, rowNum) -> mapRow(rs),
-                id
-        );
-
-        return result.stream().findFirst();
+        try {
+            Product product = jdbcTemplate.queryForObject(sql, (rs, rowNum) -> mapRow(rs), id);
+            return Optional.ofNullable(product);
+        } catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
+        }
     }
 
     @Override

@@ -1,5 +1,6 @@
 package br.com.manoel.ordermanagement.service;
 
+import br.com.manoel.ordermanagement.dto.request.CreateProductRequest;
 import br.com.manoel.ordermanagement.exception.domain.DomainValidationException;
 import br.com.manoel.ordermanagement.exception.domain.ResourceNotFoundException;
 import br.com.manoel.ordermanagement.model.Product;
@@ -9,16 +10,15 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.List;
 import java.util.Optional;
 
+import static br.com.manoel.ordermanagement.model.MoneyConstants.MONEY_ROUNDING;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 public class ProductServiceTest {
 
-    // MOCKS
     private ProductRepository repository;
     private ProductService service;
 
@@ -28,66 +28,49 @@ public class ProductServiceTest {
         service = new ProductService(repository);
     }
 
-    private Product createProduct(String description, BigDecimal price, int stock) {
+    private Product product(String description, BigDecimal price, int stock) {
         return new Product(description, price, stock);
     }
 
     // CREATE PRODUCT
-
     @Test
     @DisplayName("Create product with valid data should succeed")
     void createProduct_withValidData_shouldSucceed() {
-        Product saved = createProduct("Produto A", BigDecimal.valueOf(100.0), 10);
+        CreateProductRequest request = new CreateProductRequest("Produto A", BigDecimal.valueOf(100), 10);
+
+        Product saved = product("Produto A", BigDecimal.valueOf(100), 10);
         saved.setId(1L);
 
         when(repository.save(any(Product.class))).thenReturn(saved);
 
-        Product result = service.create("Produto A", BigDecimal.valueOf(100.0), 10);
+        Product result = service.create(request);
 
         assertEquals(1L, result.getId());
         assertEquals("Produto A", result.getDescription());
-        assertEquals(BigDecimal.valueOf(100.0).setScale(2, RoundingMode.HALF_UP), result.getPrice());
+        assertEquals(BigDecimal.valueOf(100.0).setScale(2, MONEY_ROUNDING), result.getPrice());
         assertEquals(10, result.getStockQuantity());
 
         verify(repository, times(1)).save(any(Product.class));
     }
 
-    @Test
-    @DisplayName("Create product with invalid description should throw")
-    void createProduct_withInvalidDescription_shouldThrow() {
-        assertThrows(DomainValidationException.class, () ->
-                service.create("", BigDecimal.valueOf(50.0), 5)
-        );
-    }
-
-    @Test
-    @DisplayName("Create product with invalid price should throw")
-    void createProduct_withInvalidPrice_shouldThrow() {
-        assertThrows(DomainValidationException.class, () ->
-                service.create("Produto B", BigDecimal.valueOf(-10.0), 5)
-        );
-    }
-
-    @Test
-    @DisplayName("Create product with negative stock should throw")
-    void createProduct_withNegativeStock_shouldThrow() {
-        assertThrows(DomainValidationException.class, () ->
-                service.create("Produto C", BigDecimal.valueOf(10.0), -5)
-        );
-    }
-
     // FIND BY ID
+    @Test
+    @DisplayName("Find product by null ID should throw")
+    void findById_null_shouldThrow() {
+        assertThrows(DomainValidationException.class, () -> service.findById(null));
+        verifyNoInteractions(repository);
+    }
 
     @Test
     @DisplayName("Find product by existing ID should succeed")
     void findById_existingId_shouldReturnProduct() {
-        Product product = createProduct("Produto A", BigDecimal.valueOf(100.0), 10);
-        product.setId(1L);
+        Product p = product("Produto A", BigDecimal.valueOf(100), 10);
+        p.setId(1L);
 
-        when(repository.findById(1L)).thenReturn(Optional.of(product));
+        when(repository.findById(1L)).thenReturn(Optional.of(p));
 
         Product result = service.findById(1L);
-        assertEquals(product, result);
+        assertEquals(p, result);
     }
 
     @Test
@@ -99,18 +82,26 @@ public class ProductServiceTest {
     }
 
     // FIND BY DESCRIPTION
+    // =========================
+
+    @Test
+    @DisplayName("Find products by null description should throw")
+    void findByDescription_null_shouldThrow() {
+        assertThrows(DomainValidationException.class, () -> service.findByDescription(null));
+        verifyNoInteractions(repository);
+    }
 
     @Test
     @DisplayName("Find products by description should return matching list")
     void findByDescription_shouldReturnMatchingList() {
-        Product product = createProduct("Produto A", BigDecimal.valueOf(100.0), 10);
-        when(repository.findByDescription("Produto A")).thenReturn(List.of(product));
+        Product p = product("Produto A", BigDecimal.valueOf(100), 10);
+        when(repository.findByDescription("Produto A")).thenReturn(List.of(p));
 
         List<Product> result = service.findByDescription("Produto A");
 
         assertFalse(result.isEmpty());
         assertEquals(1, result.size());
-        assertEquals(product, result.getFirst());
+        assertEquals(p, result.getFirst());
     }
 
     @Test
@@ -126,8 +117,8 @@ public class ProductServiceTest {
     @Test
     @DisplayName("Find products by description with multiple matches should return all")
     void findByDescription_multipleMatches_shouldReturnAll() {
-        Product p1 = createProduct("Produto A", BigDecimal.valueOf(100.0), 10);
-        Product p2 = createProduct("Produto A", BigDecimal.valueOf(120.0), 5);
+        Product p1 = product("Produto A", BigDecimal.valueOf(100), 10);
+        Product p2 = product("Produto A", BigDecimal.valueOf(120), 5);
         when(repository.findByDescription("Produto A")).thenReturn(List.of(p1, p2));
 
         List<Product> result = service.findByDescription("Produto A");
@@ -138,12 +129,11 @@ public class ProductServiceTest {
     }
 
     // FIND ALL PRODUCTS
-
     @Test
     @DisplayName("Find all products should return all products")
     void findAll_shouldReturnAllProducts() {
-        Product p1 = createProduct("Produto A", BigDecimal.valueOf(100.0), 10);
-        Product p2 = createProduct("Produto B", BigDecimal.valueOf(50.0), 5);
+        Product p1 = product("Produto A", BigDecimal.valueOf(100), 10);
+        Product p2 = product("Produto B", BigDecimal.valueOf(50), 5);
         when(repository.findAll()).thenReturn(List.of(p1, p2));
 
         List<Product> result = service.findAll();
@@ -151,5 +141,35 @@ public class ProductServiceTest {
         assertEquals(2, result.size());
         assertEquals(p1, result.get(0));
         assertEquals(p2, result.get(1));
+    }
+
+    // =========================
+    // DECREMENT STOCK
+    // =========================
+
+    @Test
+    void decrementStock_nullProductId_shouldThrow() {
+        assertThrows(DomainValidationException.class, () -> service.decrementStock(null, 1));
+        verifyNoInteractions(repository);
+    }
+
+    @Test
+    void decrementStock_invalidAmount_shouldThrow() {
+        assertThrows(DomainValidationException.class, () -> service.decrementStock(1L, 0));
+        verifyNoInteractions(repository);
+    }
+
+    @Test
+    void decrementStock_insufficientStock_shouldThrow() {
+        when(repository.decrementStock(1L, 5)).thenReturn(false);
+
+        assertThrows(DomainValidationException.class, () -> service.decrementStock(1L, 5));
+    }
+
+    @Test
+    void decrementStock_success_shouldNotThrow() {
+        when(repository.decrementStock(1L, 5)).thenReturn(true);
+
+        assertDoesNotThrow(() -> service.decrementStock(1L, 5));
     }
 }

@@ -6,8 +6,6 @@ import br.com.manoel.ordermanagement.exception.domain.DomainValidationException;
 import br.com.manoel.ordermanagement.exception.domain.ResourceNotFoundException;
 import br.com.manoel.ordermanagement.model.Product;
 import br.com.manoel.ordermanagement.service.ProductService;
-
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -18,9 +16,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
 
 import java.math.BigDecimal;
-import java.time.Instant;
 import java.util.List;
 
+import static org.hamcrest.Matchers.endsWith;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -38,100 +36,62 @@ class ProductControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    // MOCKS
+    // HELPERS
+    private Product product(Long id, String description, BigDecimal price, int stockQuantity) {
+        Product p = new Product(description, price, stockQuantity);
+        p.setId(id);
 
-    private Product createMockProduct(Long id, String description, BigDecimal price, int stockQuantity) {
-        Product product = new Product(description, price, stockQuantity, Instant.now());
-        product.setId(id);
-        return product;
+        return p;
     }
-    
-    // CREATE
 
+    // POST /products
     @Test
-    @DisplayName("POST /products - Create valid product should return 201")
     void create_validProduct_shouldReturn201() throws Exception {
-        Product product = createMockProduct(1L, "Product A", new BigDecimal("100.00"), 10);
+        CreateProductRequest request = new CreateProductRequest("Produto", BigDecimal.valueOf(100), 10);
 
-        when(productService.create("Product A", new BigDecimal("100.00"), 10)).thenReturn(product);
-
-        CreateProductRequest request = new CreateProductRequest("Product A", new BigDecimal("100.00"), 10);
+        when(productService.create(request))
+                .thenReturn(product(1L, "Produto", BigDecimal.valueOf(100), 10));
 
         mockMvc.perform(post("/products")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
-                .andExpect(header().string("Location", "/products/1"))
+                .andExpect(header().string("Location", endsWith("/products/1")))
                 .andExpect(jsonPath("$.id").value(1L))
-                .andExpect(jsonPath("$.description").value("Product A"))
-                .andExpect(jsonPath("$.price").value(100.00))
+                .andExpect(jsonPath("$.description").value("Produto"))
+                .andExpect(jsonPath("$.price").value(100))
                 .andExpect(jsonPath("$.stockQuantity").value(10));
     }
 
     @Test
-    @DisplayName("POST /products - Blank description should return 400")
-    void create_blankDescription_shouldReturn400() throws Exception {
-        CreateProductRequest request = new CreateProductRequest("", new BigDecimal("100.00"), 10);
+    void create_serviceThrowsDomainValidation_shouldReturn400() throws Exception {
+        CreateProductRequest request = new CreateProductRequest("Produto", BigDecimal.valueOf(100), 10);
 
-        when(productService.create("", new BigDecimal("100.00"), 10))
-                .thenThrow(new DomainValidationException("Descrição vazia ou inexistente"));
-
-        mockMvc.perform(post("/products")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("Descrição vazia ou inexistente"));
-    }
-
-    @Test
-    @DisplayName("POST /products - Price zero or negative should return 400")
-    void create_invalidPrice_shouldReturn400() throws Exception {
-        CreateProductRequest request = new CreateProductRequest("Product A", new BigDecimal("0"), 10);
-
-        when(productService.create("Product A", new BigDecimal("0"), 10))
-                .thenThrow(new DomainValidationException("O valor deve ser maior que zero"));
+        when(productService.create(request))
+                .thenThrow(new DomainValidationException("Preço deve ser maior que zero"));
 
         mockMvc.perform(post("/products")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("O valor deve ser maior que zero"));
-    }
-
-    @Test
-    @DisplayName("POST /products - Negative stock should return 400")
-    void create_negativeStock_shouldReturn400() throws Exception {
-        CreateProductRequest request = new CreateProductRequest("Product A", new BigDecimal("100.00"), -5);
-
-        when(productService.create("Product A", new BigDecimal("100.00"), -5))
-                .thenThrow(new DomainValidationException("O estoque não pode ser negativo"));
-
-        mockMvc.perform(post("/products")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("O estoque não pode ser negativo"));
+                .andExpect(jsonPath("$.message").value("Preço deve ser maior que zero"));
     }
 
     // GET /products/{id}
-
     @Test
-    @DisplayName("GET /products/{id} - Existing product should return 200")
     void getById_existingProduct_shouldReturn200() throws Exception {
-        Product product = createMockProduct(1L, "Product A", new BigDecimal("100.00"), 10);
-
-        when(productService.findById(1L)).thenReturn(product);
+        when(productService.findById(1L))
+                .thenReturn(product(1L, "Produto", BigDecimal.valueOf(100), 10));
 
         mockMvc.perform(get("/products/1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1L))
-                .andExpect(jsonPath("$.description").value("Product A"))
-                .andExpect(jsonPath("$.price").value(100.00))
+                .andExpect(jsonPath("$.description").value("Produto"))
+                .andExpect(jsonPath("$.price").value(100))
                 .andExpect(jsonPath("$.stockQuantity").value(10));
     }
 
     @Test
-    @DisplayName("GET /products/{id} - Non-existing product should return 404")
     void getById_nonExistingProduct_shouldReturn404() throws Exception {
         when(productService.findById(404L))
                 .thenThrow(new ResourceNotFoundException("Produto não encontrado"));
@@ -142,41 +102,40 @@ class ProductControllerTest {
     }
 
     // GET /products?description=<desc>
-
     @Test
-    @DisplayName("GET /products?description=<desc> - Existing products should return 200 and list")
     void getByDescription_existingProducts_shouldReturn200AndList() throws Exception {
-        Product product = createMockProduct(1L, "Product A", new BigDecimal("100.00"), 10);
+        when(productService.findByDescription("Pro"))
+                .thenReturn(List.of(
+                        product(1L, "Produto A", BigDecimal.valueOf(10), 1),
+                        product(2L, "Produto B", BigDecimal.valueOf(20), 2)
+                ));
 
-        when(productService.findByDescription("Product A")).thenReturn(List.of(product));
-
-        mockMvc.perform(get("/products").param("description", "Product A"))
+        mockMvc.perform(get("/products").param("description", "Pro"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(1))
-                .andExpect(jsonPath("$[0].description").value("Product A"))
-                .andExpect(jsonPath("$[0].price").value(100.00))
-                .andExpect(jsonPath("$[0].stockQuantity").value(10));
+                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$[0].id").value(1L))
+                .andExpect(jsonPath("$[0].description").value("Produto A"))
+                .andExpect(jsonPath("$[1].id").value(2L))
+                .andExpect(jsonPath("$[1].description").value("Produto B"));
     }
 
     @Test
-    @DisplayName("GET /products?description=<desc> - No product found should return 200 and empty list")
     void getByDescription_noProductsFound_shouldReturn200AndEmptyList() throws Exception {
-        when(productService.findByDescription("Unknown")).thenReturn(List.of());
+        when(productService.findByDescription("Nada")).thenReturn(List.of());
 
-        mockMvc.perform(get("/products").param("description", "Unknown"))
+        mockMvc.perform(get("/products").param("description", "Nada"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(0));
     }
 
     // GET /products
-
     @Test
-    @DisplayName("GET /products - Return all products")
     void getAll_shouldReturn200AndAllProducts() throws Exception {
-        Product p1 = createMockProduct(1L, "A", new BigDecimal("10.00"), 5);
-        Product p2 = createMockProduct(2L, "B", new BigDecimal("20.00"), 8);
-
-        when(productService.findAll()).thenReturn(List.of(p1, p2));
+        when(productService.findAll())
+                .thenReturn(List.of(
+                        product(1L, "A", BigDecimal.valueOf(1), 1),
+                        product(2L, "B", BigDecimal.valueOf(2), 2)
+                ));
 
         mockMvc.perform(get("/products"))
                 .andExpect(status().isOk())
@@ -184,7 +143,6 @@ class ProductControllerTest {
     }
 
     @Test
-    @DisplayName("GET /products - No products registered should return 200 and empty list")
     void getAll_noProductsRegistered_shouldReturn200AndEmptyList() throws Exception {
         when(productService.findAll()).thenReturn(List.of());
 
