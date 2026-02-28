@@ -2,12 +2,14 @@ package br.com.manoel.ordermanagement.controller;
 
 import br.com.manoel.ordermanagement.dto.request.CreateCustomerRequest;
 import br.com.manoel.ordermanagement.dto.response.CustomerResponse;
+import br.com.manoel.ordermanagement.mapper.CustomerMapper;
 import br.com.manoel.ordermanagement.model.Customer;
 import br.com.manoel.ordermanagement.service.CustomerService;
 
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
 import java.util.List;
@@ -26,49 +28,43 @@ public class CustomerController {
     @PostMapping
     public ResponseEntity<CustomerResponse> create(@Valid @RequestBody CreateCustomerRequest request) {
 
-        Customer customer = service.create(request.name(), request.email());
+        Customer customer = service.create(request);
 
-        CustomerResponse response = toResponse(customer);
+        URI location = ServletUriComponentsBuilder
+                .fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(customer.getId())
+                .toUri();
 
-        return ResponseEntity.created(URI.create("/customers/" + customer.getId())).body(response);
+        return ResponseEntity
+                .created(location)
+                .body(CustomerMapper.toResponse(customer));
     }
 
     //READ
     // Get by ID
     @GetMapping("/{id}")
     public ResponseEntity<CustomerResponse> getById(@PathVariable Long id) {
-        Customer customer = service.findById(id);
-
-        return ResponseEntity.ok(toResponse(customer));
+        return ResponseEntity.ok(
+                CustomerMapper.toResponse(service.findById(id))
+        );
     }
 
     // Get by Name
     @GetMapping(params = "name")
     public ResponseEntity<List<CustomerResponse>> getByName(@RequestParam String name) {
+        return ResponseEntity.ok(toResponseList(service.findByName(name)));
 
-        List<CustomerResponse> response = service.findByName(name)
-                .stream()
-                .map(this::toResponse)
-                .toList();
-
-        return ResponseEntity.ok(response);
     }
 
     // List all customers
     @GetMapping
     public ResponseEntity<List<CustomerResponse>> getAll() {
-        List<CustomerResponse> response = service.findAll().stream().map(this::toResponse).toList();
-
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(toResponseList(service.findAll()));
     }
 
-    // UTILS
-    private CustomerResponse toResponse(Customer customer) {
-        return new CustomerResponse(
-                customer.getId(),
-                customer.getName(),
-                customer.getEmail(),
-                customer.getCreatedAt()
-        );
+    // INTERNAL HELPER
+    private static List<CustomerResponse> toResponseList(List<Customer> customers) {
+        return customers.stream().map(CustomerMapper::toResponse).toList();
     }
 }

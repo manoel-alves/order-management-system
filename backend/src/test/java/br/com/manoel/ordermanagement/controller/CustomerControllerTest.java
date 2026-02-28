@@ -6,7 +6,6 @@ import br.com.manoel.ordermanagement.exception.domain.DomainValidationException;
 import br.com.manoel.ordermanagement.exception.domain.ResourceNotFoundException;
 import br.com.manoel.ordermanagement.model.Customer;
 import br.com.manoel.ordermanagement.service.CustomerService;
-
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -19,6 +18,7 @@ import tools.jackson.databind.ObjectMapper;
 import java.time.Instant;
 import java.util.List;
 
+import static org.hamcrest.Matchers.endsWith;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -36,91 +36,51 @@ class CustomerControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    // POST /customers
+    // HELPERS
+    private Customer customer(Long id, String name, String email) {
+        Customer c = new Customer(name, email, Instant.now());
+        c.setId(id);
+        return c;
+    }
 
+    // POST /customers
     @Test
     void create_validCustomer_shouldReturn201() throws Exception {
-        Customer customer = new Customer("Valid Name", "valid@example.com", Instant.now());
-        customer.setId(1L);
-
-        when(customerService.create("Valid Name", "valid@example.com")).thenReturn(customer);
-
         CreateCustomerRequest request = new CreateCustomerRequest("Valid Name", "valid@example.com");
+
+        when(customerService.create(request))
+                .thenReturn(customer(1L, "Valid Name", "valid@example.com"));
 
         mockMvc.perform(post("/customers")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
-                .andExpect(header().string("Location", "/customers/1"))
+                .andExpect(header().string("Location", endsWith("/customers/1")))
                 .andExpect(jsonPath("$.id").value(1L))
                 .andExpect(jsonPath("$.name").value("Valid Name"))
                 .andExpect(jsonPath("$.email").value("valid@example.com"));
     }
 
     @Test
-    void create_blankName_shouldReturn400() throws Exception {
-        CreateCustomerRequest request = new CreateCustomerRequest("", "valid@example.com");
+    void create_serviceThrowsDomainValidation_shouldReturn400() throws Exception {
+        CreateCustomerRequest request = new CreateCustomerRequest("Valid Name", "valid@example.com");
 
-        when(customerService.create("", "valid@example.com"))
-                .thenThrow(new DomainValidationException("Nome vazio ou inexistente"));
-
-        mockMvc.perform(post("/customers")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("Nome vazio ou inexistente"));
-    }
-
-    @Test
-    void create_blankEmail_shouldReturn400() throws Exception {
-        CreateCustomerRequest request = new CreateCustomerRequest("Valid Name", "");
-
-        when(customerService.create("Valid Name", ""))
-                .thenThrow(new DomainValidationException("Email vazio ou inexistente"));
+        when(customerService.create(request))
+                .thenThrow(new DomainValidationException("Email já cadastrado"));
 
         mockMvc.perform(post("/customers")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("Email vazio ou inexistente"));
+                .andExpect(jsonPath("$.message").value("Email já cadastrado"));
     }
 
-    @Test
-    void create_invalidName_shouldReturn400() throws Exception {
-        CreateCustomerRequest request = new CreateCustomerRequest("Invalid  Name123", "valid@example.com");
-
-        when(customerService.create("Invalid  Name123", "valid@example.com"))
-                .thenThrow(new DomainValidationException("Nome deve conter apenas letras e espaços únicos"));
-
-        mockMvc.perform(post("/customers")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("Nome deve conter apenas letras e espaços únicos"));
-    }
-
-    @Test
-    void create_invalidEmail_shouldReturn400() throws Exception {
-        CreateCustomerRequest request = new CreateCustomerRequest("Valid Name", "invalid-email");
-
-        when(customerService.create("Valid Name", "invalid-email"))
-                .thenThrow(new DomainValidationException("Email com formato inválido"));
-
-        mockMvc.perform(post("/customers")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("Email com formato inválido"));
-    }
 
     // GET /customers/{id}
-
     @Test
     void getById_existingCustomer_shouldReturn200() throws Exception {
-        Customer customer = new Customer("Valid Name", "valid@example.com", Instant.now());
-        customer.setId(1L);
-
-        when(customerService.findById(1L)).thenReturn(customer);
+        when(customerService.findById(1L))
+                .thenReturn(customer(1L, "Valid Name", "valid@example.com"));
 
         mockMvc.perform(get("/customers/1"))
                 .andExpect(status().isOk())
@@ -140,17 +100,15 @@ class CustomerControllerTest {
     }
 
     // GET /customers?name=<name>
-
     @Test
     void getByName_existingCustomer_shouldReturn200AndList() throws Exception {
-        Customer customer = new Customer("Valid Name", "valid@example.com", Instant.now());
-        customer.setId(1L);
-
-        when(customerService.findByName("Valid Name")).thenReturn(List.of(customer));
+        when(customerService.findByName("Valid Name"))
+                .thenReturn(List.of(customer(1L, "Valid Name", "valid@example.com")));
 
         mockMvc.perform(get("/customers").param("name", "Valid Name"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].id").value(1L))
                 .andExpect(jsonPath("$[0].name").value("Valid Name"))
                 .andExpect(jsonPath("$[0].email").value("valid@example.com"));
     }
@@ -165,15 +123,13 @@ class CustomerControllerTest {
     }
 
     // GET /customers
-
     @Test
     void getAll_shouldReturn200AndAllCustomers() throws Exception {
-        Customer c1 = new Customer("A", "a@example.com", Instant.now());
-        c1.setId(1L);
-        Customer c2 = new Customer("B", "b@example.com", Instant.now());
-        c2.setId(2L);
-
-        when(customerService.findAll()).thenReturn(List.of(c1, c2));
+        when(customerService.findAll())
+                .thenReturn(List.of(
+                        customer(1L, "A", "a@example.com"),
+                        customer(2L, "B", "b@example.com")
+                ));
 
         mockMvc.perform(get("/customers"))
                 .andExpect(status().isOk())
