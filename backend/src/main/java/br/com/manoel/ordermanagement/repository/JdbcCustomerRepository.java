@@ -1,6 +1,7 @@
 package br.com.manoel.ordermanagement.repository;
 
 import br.com.manoel.ordermanagement.model.Customer;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -42,15 +43,14 @@ public class JdbcCustomerRepository implements CustomerRepository {
 
     @Override
     public Optional<Customer> findById(Long id) {
-        String sql = "SELECT * FROM customers WHERE id = ?";
+        String sql = "SELECT id, name, email, created_at FROM customers WHERE id = ?";
 
-        List<Customer> result = jdbcTemplate.query(
-                sql,
-                (rs, rowNum) -> mapRow(rs),
-                id
-        );
-
-        return result.stream().findFirst();
+        try {
+            Customer customer = jdbcTemplate.queryForObject(sql, (rs, rowNum) -> mapRow(rs), id);
+            return Optional.ofNullable(customer);
+        } catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
+        }
     }
 
     @Override
