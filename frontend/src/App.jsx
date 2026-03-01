@@ -1,5 +1,6 @@
 import {useState} from "react";
 import AppLayout from "./layout/AppLayout.jsx";
+import Customers from "./pages/Customers.jsx";
 
 function App() {
     const [page, setPage] = useState('customers');
@@ -7,7 +8,7 @@ function App() {
     const renderPage = () => {
         switch (page) {
             case "customers":
-                return <Page title="Clientes" />;
+                return <Customers/>
             case "products":
                 return <Page title="Produtos" />;
             case "orders":

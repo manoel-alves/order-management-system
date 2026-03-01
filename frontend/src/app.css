@@ -1,7 +1,8 @@
-html, body, #root {
-    height: 100%;
+.app-main {
+    padding-top: 56px;
 }
 
-body {
-    margin: 0;
+.list-scroll {
+    height: 360px;
+    overflow-y: auto;
 }

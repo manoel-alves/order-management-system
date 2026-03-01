@@ -1,33 +1,28 @@
 function Header({ active, onNavigate }) {
     const items = [
-        { key: 'customers', label: 'Clientes' },
-        { key: 'products', label: 'Produtos' },
-        { key: 'orders', label: 'Pedidos' },
+        { key: "customers", label: "Clientes" },
+        { key: "products", label: "Produtos" },
+        { key: "orders", label: "Pedidos" },
     ];
 
     return (
-        <nav className="navbar navbar-expand-lg navbar-dark bg-dark py-3">
-            <div className="container">
-                <span className="navbar-brand fs-4 fw-bold me-5">
-                    Order Management
-                </span>
+        <nav className="navbar navbar-dark bg-dark fixed-top">
+            <div className="container d-flex align-items-center gap-3">
+                <span className="navbar-brand mb-0 fs-3 fw-bold">Gerenciador de pedidos</span>
 
-                <div className="collapse navbar-collapse show">
-                    <ul className="navbar-nav gap-4">
-                        {items.map((item) => (
-                            <li className="nav-item fs-5" key={item.key}>
-                                <button
-                                    type="button"
-                                    className={`nav-link ${
-                                        active === item.key ? 'active' : ''
-                                    }`}
-                                    onClick={() => onNavigate(item.key)}
-                                >
-                                    {item.label}
-                                </button>
-                            </li>
-                        ))}
-                    </ul>
+                <div className="d-flex gap-2">
+                    {items.map((item) => (
+                        <button
+                            key={item.key}
+                            type="button"
+                            className={`btn btn-sm ${
+                                active === item.key ? "btn-light" : "btn-outline-light"
+                            }`}
+                            onClick={() => onNavigate(item.key)}
+                        >
+                            {item.label}
+                        </button>
+                    ))}
                 </div>
             </div>
         </nav>

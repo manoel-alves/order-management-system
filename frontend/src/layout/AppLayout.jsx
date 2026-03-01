@@ -1,16 +1,14 @@
-import Header from '../components/Header.jsx';
+import Header from "../components/Header";
 
 function AppLayout({ active, onNavigate, children }) {
     return (
-        <div>
+        <>
             <Header active={active} onNavigate={onNavigate} />
 
-            <main className="bg-light py-4">
-                <div className="container">
-                    {children}
-                </div>
+            <main className="app-main">
+                <div className="container py-4">{children}</div>
             </main>
-        </div>
+        </>
     );
 }
 
