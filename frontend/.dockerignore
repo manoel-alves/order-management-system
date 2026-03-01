@@ -1,0 +1,22 @@
+# Dependencies
+node_modules
+
+# Git
+.git
+.gitignore
+
+# Local build
+dist
+
+# Environment
+.env
+.env.local
+.env.development
+.env.production
+
+# IDE
+.vscode
+.idea
+
+# Logs
+npm-debug.log

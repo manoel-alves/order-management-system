@@ -48,7 +48,10 @@ Sistema para gerenciamento de **clientes**, **produtos** e **pedidos**, desenvol
 - Lombok
 
 ### Frontend:
-- Stack tecnológica será definida em etapa posterior.
+- React + Vite
+- Javascript
+- Bootstrap
+- Nginx (container)
 
 ### Banco de Dados:
 | **Componente** | **Versão** |
@@ -120,7 +123,7 @@ Controller -> Service -> Repository
 - `Exception` → Tratamento global de erros
 
 ### Frontend
-- Planejado para ser implementado como **SPA (Single Page Application)** baseada em separação de responsabilidades: `Pages → Components → Services`
+O frontend segue uma arquitetura modular orientada a features (Feature-Based Architecture), com separação clara de responsabilidades entre UI, estado e camada de acesso à API.
 
 ### Infraestrutura
 - Containerização via Docker
@@ -128,7 +131,8 @@ Controller -> Service -> Repository
 - Serviços configurados no `docker-compose.yml`:
   - `postgres` -> postgres:18
   - `backend-tests` -> Container para execução isolada de testes unitários.
-  - `backend` -> Container principal da API
+  - `backend` -> Container principal da API do backend
+  - `frontend` -> Container responsável por servir o frontend via _Nginx_.
 
 ---
 
@@ -137,42 +141,59 @@ Controller -> Service -> Repository
 ### Monorepo:
 ```bash
 order-management-system/ # Raiz do projeto (monorepo)
-├─ backend/ # Aplicação Spring Boot (API REST)
-├─ frontend/ # Interface do usuário (planejado)
+├─ backend/        # Aplicação Spring Boot (API REST)
+├─ frontend/       # Interface do usuário (React + Vite)
 ├─ docker-compose.yml # Orquestra o backend e o banco via containers
-├─ .gitignore # Ignores gerais
-└─ README.md # Documentação do Projeto
+├─ .gitignore      # Ignores gerais
+└─ README.md       # Documentação do Projeto
 ```
 
 ### Backend:
 ```bash
 backend/ 
 ├─ src/main/java/br/com/manoel/ordermanagement/
-│  ├─ controller/ # Endpoints REST
-│  ├─ dto/ # Padronização de Requests e Responses
-│  │  ├── request/  # DTOs de entrada
-│  │  └── response/ # DTOs de saída
-│  ├─ exception/ # Tratamento de exceções
-│  │  ├── api/  # Exceções de API
-│  │  ├── domain/ # Exceções de domínio
+│  ├─ controller/     # Endpoints REST
+│  ├─ dto/            # Padronização de Requests e Responses
+│  │  ├── request/    # DTOs de entrada
+│  │  └── response/   # DTOs de saída
+│  ├─ exception/      # Tratamento de exceções
+│  │  ├── api/        # Exceções de API
+│  │  ├── domain/     # Exceções de domínio
 │  │  └── GlobalExceptionHandler.java # Tratamento global de exceções
-│  ├─ mapper/ # Conversão domínio → DTO
-│  ├─ model/ # Entidades e regras de domínio
-│  ├─ repository/ # Acesso a dados (Native Queries)
-│  ├─ service/ # Regras de negócio
+│  ├─ mapper/         # Conversão domínio → DTO
+│  ├─ model/          # Entidades e regras de domínio
+│  ├─ repository/     # Acesso a dados (Native Queries)
+│  ├─ service/        # Regras de negócio
 │  └─ OrderManagementSystemApplication.java # Ponto de entrada do Spring Boot
 ├─ src/main/resources/
-│  ├─ db.migration/ # migrations do flyway
+│  ├─ db.migration/   # migrations do flyway
 │  └─ application.yml # Configurações do Spring Boot 
-├─ src/test/java/ # Testes unitários e de integração
-├─ .gitignore # Ignores específicos do backend
-├─ Dockerfile # instruções do container backend
-├─ Dockerfile.test # instruções do container de testes
-└─ pom.xml # Gerenciamento de dependências e build
+├─ src/test/java/     # Testes unitários e de integração
+├─ .gitignore         # Ignores específicos do backend
+├─ Dockerfile         # instruções do container backend
+├─ Dockerfile.test    # instruções do container de testes
+└─ pom.xml            # Gerenciamento de dependências e build
 ```
 
 ### frontend
-- Será adicionado posteriormente.
+```bash
+frontend/
+├─ src/
+│  ├─ api/           # Camada de acesso HTTP (fetch) e funções por recurso
+│  ├─ components/    # Componentes compartilhados
+│  ├─ layout/        # Layout base
+│  ├─ app.css        # Estilos globais
+│  ├─ App.jsx        # Componente raiz
+│  └─ main.jsx       # Entrypoint
+├─ .dockerignore     # ignores do contexto de build do Docker
+├─ .gitignore        # ignores específicos do frontend
+├─ Dockerfile        # Instruções do container frontend
+├─ eslint.config.js  # Configuração do ESLint
+├─ index.html        # Template base do Vite
+├─ package.json      # Dependências e scripts
+├─ package-lock.json # Lockfile npm para builds 
+└─ vite.config.js    # Configuração do Vite
+```
 
 ---
 
@@ -396,6 +417,30 @@ mvn clean test
 
 - **TIMESTAMP WITH TIME ZONE (UTC)**: adotado para armazenar datas no padrão UTC, garantindo maior precisão e evitando ambiguidades de fuso horário.
   - DEFAULT CURRENT_TIMESTAMP foi removido a fim de delegar controle exclusivo da definição de timestamps à aplicação.
+
+### Frontend
+
+- **Stack**: 
+  - **React**: utilizado para construir a interface em componentes reutilizáveis, facilitando manutenção e evolução incremental por entidade (Clientes, Produtos, Pedidos).
+
+  - **Vite**: adotado por oferecer experiência de desenvolvimento dinâmica no ciclo _alterar -> testar_.
+
+  - **Javascript**: escolhido considerando o escopo controlado da aplicação e a baixa complexidade estrutural do frontend, diminuindo configuração e verbosidade adicional.
+
+  - **Bootstrap**: adotado por oferecer UI consistente, responsiva e padronizada com baixo custo de manutenção de estilo.
+
+  - **Nginx (container)**: utilizado para garantir um contexto de build leve e estável para servir o frontend dentro do container. 
+
+
+- **Arquitetura (Feature-based)**: 
+  - Organizada por feature para manter cada entidade isolada e fácil de evoluir de acordo com suas particularidades.
+  - distinção clara entre camada de UI (componentes), camada de estado (hooks) e camada de integração (API layer), garantindo maior previsibilidade e facilidade de manutenção 
+
+
+- **apiFetch**: implementei apiFetch ao invés de usar fetch() diretamente para centralizar configuração de headers, tratamento de erros, parsing de resposta e desacoplar funções de domínio da implementação http.
+
+
+- **UI e Layout**: Layout com header fixo e com foco em telas por entidade.
 
 ---
 
