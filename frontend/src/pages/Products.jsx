@@ -20,7 +20,6 @@ export default function Products() {
             <div className="mb-3">
                 <h2 className="fw-semibold">Produtos</h2>
 
-                {/* Mensagens */}
                 {error && <div className="alert alert-danger mb-2">{error}</div>}
                 {success && <div className="alert alert-success mb-0">{success}</div>}
             </div>

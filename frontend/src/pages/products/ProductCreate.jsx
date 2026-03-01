@@ -12,7 +12,6 @@ export default function ProductCreate({ loadingCreate, createOne }) {
                 <h5 className="card-title">Cadastrar produto</h5>
 
                 <form
-                    className=""
                     onSubmit={(e) => {
                         e.preventDefault();
 
