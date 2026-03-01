@@ -1,8 +1,10 @@
-.app-main {
-    padding-top: 56px;
+.list-scroll {
+    height: 300px;
+    overflow-y: auto;
 }
 
-.list-scroll {
-    height: 360px;
-    overflow-y: auto;
+.product-list-card {
+    height: 420px;
+    display: flex;
+    flex-direction: column;
 }

@@ -1,12 +1,12 @@
 function Header({ active, onNavigate }) {
     const items = [
+        { key: "orders", label: "Pedidos" },
         { key: "customers", label: "Clientes" },
         { key: "products", label: "Produtos" },
-        { key: "orders", label: "Pedidos" },
     ];
 
     return (
-        <nav className="navbar navbar-dark bg-dark fixed-top">
+        <nav className="navbar navbar-dark bg-dark sticky-top">
             <div className="container d-flex align-items-center gap-3">
                 <span className="navbar-brand mb-0 fs-3 fw-bold">Gerenciador de pedidos</span>
 

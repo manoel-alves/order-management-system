@@ -1,18 +1,19 @@
 import {useState} from "react";
 import AppLayout from "./layout/AppLayout.jsx";
 import Customers from "./pages/Customers.jsx";
+import Products from "./pages/Products.jsx";
 
 function App() {
-    const [page, setPage] = useState('customers');
+    const [page, setPage] = useState('orders');
 
     const renderPage = () => {
         switch (page) {
+            case "orders":
+                return <Page title="Pedidos" />;
             case "customers":
                 return <Customers/>
             case "products":
-                return <Page title="Produtos" />;
-            case "orders":
-                return <Page title="Pedidos" />;
+                return <Products/>;
             default:
                 return null;
         }

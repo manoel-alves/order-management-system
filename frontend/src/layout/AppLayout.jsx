@@ -5,8 +5,8 @@ function AppLayout({ active, onNavigate, children }) {
         <>
             <Header active={active} onNavigate={onNavigate} />
 
-            <main className="app-main">
-                <div className="container py-4">{children}</div>
+            <main className="container py-3">
+                {children}
             </main>
         </>
     );
