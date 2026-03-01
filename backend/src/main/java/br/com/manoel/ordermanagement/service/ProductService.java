@@ -58,7 +58,7 @@ public class ProductService {
 
         boolean updated = repository.decrementStock(productId, amount);
         if (!updated) {
-            throw new DomainValidationException("Estoque insuficiente para o produto: " + productId);
+            throw new DomainValidationException("Estoque insuficiente para o produto: " + "#" + productId);
         }
     }
 }
