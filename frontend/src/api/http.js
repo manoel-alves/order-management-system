@@ -1,29 +1,47 @@
-const DEFAULT_HEADERS = {
-    "Content-Type": "application/json",
-    "Accept": "application/json",
-};
-
 export async function apiFetch(path, options = {}) {
-    const config = {
-        method: options.method ?? "GET",
+    const response = await fetch(path, {
         headers: {
-            ...DEFAULT_HEADERS,
-            ...(options.headers ?? {}),
+            "Content-Type": "application/json",
+            ...(options.headers || {}),
         },
-        body: options.body,
-    };
+        ...options,
+    });
 
-    const response = await fetch(path, config);
+    const contentType = response.headers.get("content-type");
+    let payload = null;
 
-    const contentType = response.headers.get("content-type") ?? "";
-    const isJson = contentType.includes("application/json");
+    try {
+        if (contentType && contentType.includes("application/json")) {
+            payload = await response.json();
+        } else {
+            payload = await response.text();
+        }
+    } catch {
+        payload = null;
+    }
 
-    const payload = isJson ? await response.json().catch(() => null) : await response.text().catch(() => null);
+    const emptyPayload =
+        payload == null ||
+        (typeof payload === "string" && payload.trim().length === 0);
+
+    if (
+        [502, 503, 504].includes(response.status) ||
+        (response.status >= 500 && emptyPayload)
+    ) {
+        const error = new Error(
+            "Servidor indisponível. Verifique se o backend está rodando e tente novamente."
+        );
+        error.code = "BACKEND_UNAVAILABLE";
+        error.status = response.status;
+        throw error;
+    }
 
     if (!response.ok) {
         const message =
-            (payload && typeof payload === "object" && payload.message) ? payload.message
-                : (typeof payload === "string" && payload.trim().length > 0) ? payload
+            payload && typeof payload === "object" && payload.message
+                ? payload.message
+                : typeof payload === "string" && payload.trim().length > 0
+                    ? payload
                     : `Erro HTTP ${response.status}`;
 
         const error = new Error(message);
