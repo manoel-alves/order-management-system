@@ -1,11 +1,17 @@
 # 📦 Sistema de Gerenciamento de Pedidos
 
-*Desafio técnico desenvolvido para o processo seletivo da **SergipeTec**.*
+*Aplicação fullstack containerizada para gerenciamento de clientes, produtos e pedidos, com backend em Java (Spring Boot) e frontend em React.*
 
-[![Java](https://img.shields.io/badge/Java-21-orange?style=for-the-badge)](https://openjdk.org/)
-[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.0.2-brightgreen?style=for-the-badge)](https://spring.io/projects/spring-boot)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-18-blue?style=for-the-badge)](https://www.postgresql.org/)
-[![Docker](https://img.shields.io/badge/Docker-Compose-blue?style=for-the-badge)](https://www.docker.com/)
+[![Java](https://img.shields.io/badge/Java-21-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)](https://openjdk.org/)
+[![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.0.2-6DB33F?style=for-the-badge&logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-18-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/) 
+
+[![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=white)](https://react.dev/)
+[![Vite](https://img.shields.io/badge/Vite-7-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
+[![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)](https://developer.mozilla.org/pt-BR/docs/Web/JavaScript)
+[![Bootstrap](https://img.shields.io/badge/Bootstrap-5-7952B3?style=for-the-badge&logo=bootstrap&logoColor=white)](https://getbootstrap.com/)
+[![Nginx](https://img.shields.io/badge/Nginx-Container-009639?style=for-the-badge&logo=nginx&logoColor=white)](https://nginx.org/)
 
 ---
 
@@ -33,11 +39,9 @@ Sistema para gerenciamento de **clientes**, **produtos** e **pedidos**, desenvol
 ## 🛠️ Tecnologias
 
 ### Backend:
-|    **Componente**     | **Versão** |
-|:---------------------:|:----------:|
-|         Java          |     21     |
-|      Spring Boot      |   4.0.2    |
-|         Maven         |  Wrapper   |
+- Java: 21
+- Spring Boot: 4.0.2
+- Maven
 
 #### Dependências:
 - Spring Web
@@ -54,11 +58,8 @@ Sistema para gerenciamento de **clientes**, **produtos** e **pedidos**, desenvol
 - Nginx (container)
 
 ### Banco de Dados:
-| **Componente** | **Versão** |
-|:--------------:|:----------:|
-|   PostgreSQL   |     18     |
-
-- Executado em container via Docker Compose
+- PostgreSQL - 18
+  - Executado em container via Docker Compose
 
 ### Infraestrutura:
 - Docker
@@ -77,17 +78,23 @@ Sistema para gerenciamento de **clientes**, **produtos** e **pedidos**, desenvol
   - Portas livres:
     - `5432` (PostgreSQL)
     - `8080` (Backend API)
+    - `80` (Frontend)
 
-### Executar aplicação:
+---
+
+### Executar aplicação
 
 ```bash
 git clone https://github.com/manoel-alves/order-management-system.git
 cd order-management-system
 docker compose up --build -d
 ```
-- API disponível em: `http://localhost:8080/`
+- Interface do Usuário: `http://localhost/`
+- API disponível em: 
+  - Nginx proxy (recomendado): `http://localhost/api/`
+  - backend: `http://localhost:8080/`
 
-### Parar aplicação:
+### Parar aplicação
 
 ```bash
 docker compose stop
@@ -98,9 +105,30 @@ docker compose stop
 docker compose down 
 ```
    
-#### Resetar banco (remove volumes):
+#### Resetar Aplicação + Dados (remove volumes):
 ```bash
 docker compose down -v
+```
+
+---
+
+### Popular banco com dados de exemplo
+Os dados de exemplo **não são executados automaticamente**.
+
+#### Requisito:
+- Containers em execução 
+
+#### 1. (Opcional) Limpar banco sem derrubar containers:
+- Remove todos os dados e reinicia IDs (sequences).
+```bash
+docker cp backend/src/main/resources/db/scripts/reset_db.sql postgres:/reset_db.sql
+docker exec -it postgres psql -U postgres -d order_management -f /reset_db.sql
+```
+
+#### 2. Popular banco:
+```bash
+docker cp backend/src/main/resources/db/scripts/seed.sql postgres:/seed.sql
+docker exec -it postgres psql -U postgres -d order_management -f /seed.sql
 ```
 
 ---
@@ -166,7 +194,8 @@ backend/
 │  ├─ service/        # Regras de negócio
 │  └─ OrderManagementSystemApplication.java # Ponto de entrada do Spring Boot
 ├─ src/main/resources/
-│  ├─ db.migration/   # migrations do flyway
+│  ├─ db/migration/   # migrations do flyway
+│  ├─ db/scripts/   # scripts manuais para BD
 │  └─ application.yml # Configurações do Spring Boot 
 ├─ src/test/java/     # Testes unitários e de integração
 ├─ .gitignore         # Ignores específicos do backend
