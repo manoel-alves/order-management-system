@@ -13,42 +13,41 @@ export default function Products() {
         refreshAll,
         searchByDescription,
         createOne,
+        selectById,
     } = useProducts();
 
     return (
         <>
             <div className="mb-3">
-                <h2 className="fw-semibold">Produtos</h2>
+                <h2 className="fw-semibold mb-2">Produtos</h2>
 
                 {error && <div className="alert alert-danger mb-2">{error}</div>}
                 {success && <div className="alert alert-success mb-0">{success}</div>}
             </div>
 
-            <div className="row mb-3 g-3 align-items-stretch">
-                <div className="col-md-6 d-flex">
-
-                    <ProductCreate
-                        loadingCreate={loadingCreate}
-                        createOne={createOne}
-                    />
-
+            {/* Ação principal */}
+            <div className="row g-3 mb-3">
+                <div className="col-12 d-flex">
+                    <ProductCreate loadingCreate={loadingCreate} createOne={createOne} />
                 </div>
+            </div>
 
-                <div className="col-md-6 d-flex">
+            {/* Filtros */}
+            <div className="row g-3 mb-3">
+                <div className="col-12 d-flex">
                     <ProductSearch
-                        loadingList={loadingList}
-                        searchByDescription={searchByDescription}
+                        loading={loadingList}
+                        onListAll={refreshAll}
+                        onFindById={selectById}
+                        onSearchByDescription={searchByDescription}
                     />
                 </div>
             </div>
 
+            {/* Resultados */}
             <div className="row g-3">
                 <div className="col-12 d-flex">
-                    <ProductList
-                        items={items}
-                        loadingList={loadingList}
-                        refreshAll={refreshAll}
-                    />
+                    <ProductList items={items} loading={loadingList} />
                 </div>
             </div>
         </>

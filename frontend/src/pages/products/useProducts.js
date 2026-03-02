@@ -26,7 +26,6 @@ export function useProducts() {
     const refreshAll = useCallback(async () => {
         const requestId = ++requestIdRef.current;
 
-        clearMessages();
         setLoadingList(true);
 
         try {
@@ -118,12 +117,17 @@ export function useProducts() {
             try {
                 const data = await getProductById(id);
 
+                if (data) setItems([data]);
+                else setItems([]);
+                setSelectedProduct(data ?? null);
+
                 if (requestId !== requestIdRef.current) return;
 
                 setSelectedProduct(data ?? null);
             } catch (e) {
                 if (requestId !== requestIdRef.current) return;
 
+                setItems([]);
                 setSelectedProduct(null);
                 setError(e?.message ?? "Falha ao carregar detalhes do produto.");
             }

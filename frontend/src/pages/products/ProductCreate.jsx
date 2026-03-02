@@ -7,7 +7,7 @@ export default function ProductCreate({ loadingCreate, createOne }) {
     const [stockQuantity, setStockQuantity] = useState("");
 
     return (
-        <div className="card w-100 h-100">
+        <div className="card w-100 ui-card">
             <div className="card-body">
                 <h5 className="card-title">Cadastrar produto</h5>
 

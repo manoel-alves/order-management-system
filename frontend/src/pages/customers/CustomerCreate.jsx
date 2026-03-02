@@ -6,7 +6,7 @@ export default function CustomerCreate({ loadingCreate, createOne }) {
     const [email, setEmail] = useState("");
 
     return (
-        <div className="card w-100 h-100">
+        <div className="card w-100 ui-card">
             <div className="card-body">
                 <h5 className="card-title">Cadastrar cliente</h5>
 

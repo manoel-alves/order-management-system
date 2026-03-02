@@ -26,7 +26,6 @@ export function useCustomers() {
     const refreshAll = useCallback(async () => {
         const requestId = ++requestIdRef.current;
 
-        clearMessages();
         setLoadingList(true);
 
         try {
@@ -110,6 +109,10 @@ export function useCustomers() {
         try {
             const data = await getCustomerById(id);
 
+            if (data) setItems([data]);
+            else setItems([]);
+            setSelectedCustomer(data ?? null);
+
             if (requestId !== requestIdRef.current) {
                 return;
             }
@@ -118,6 +121,7 @@ export function useCustomers() {
             if (requestId !== requestIdRef.current) {
                 return;
             }
+            setItems([]);
             setSelectedCustomer(null);
             setError(e?.message ?? "Falha ao carregar detalhes do cliente.");
         }
