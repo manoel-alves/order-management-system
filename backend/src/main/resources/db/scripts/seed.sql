@@ -38,115 +38,171 @@ VALUES ('Notebook Gamer', 4500.00, 50, NOW()),
        ('Controle Xbox', 380.00, 130, NOW());
 
 
--- ORDERS (15)
+-- ORDERS (20)
 
 INSERT INTO orders (customer_id, order_date, total_amount)
-VALUES (1, NOW(), 5000.00);
+VALUES (1, TIMESTAMPTZ '2026-01-05 10:15:00+00', 950.00);
 
 INSERT INTO order_items (order_id, product_id, quantity, unit_price, discount, total_price)
-VALUES (1, 1, 1, 4500.00, 0.00, 4500.00),
-       (1, 2, 2, 250.00, 0.00, 500.00);
+VALUES
+    (1, 2, 2, 250.00, 0.00, 500.00),
+    (1, 3, 1, 450.00, 0.00, 450.00);
+
+INSERT INTO orders (customer_id, order_date, total_amount)
+VALUES (1, TIMESTAMPTZ '2026-02-10 08:00:00+00', 4700.00);
+
+INSERT INTO order_items (order_id, product_id, quantity, unit_price, discount, total_price)
+VALUES
+    (2, 1, 1, 4500.00, 0.00, 4500.00),
+    (2, 2, 1, 250.00, 50.00, 200.00);
+
+INSERT INTO orders (customer_id, order_date, total_amount)
+VALUES (1, TIMESTAMPTZ '2026-02-28 23:59:59+00', 600.00);
+
+INSERT INTO order_items (order_id, product_id, quantity, unit_price, discount, total_price)
+VALUES
+    (3, 5, 2, 350.00, 100.00, 600.00);
 
 
 INSERT INTO orders (customer_id, order_date, total_amount)
-VALUES (2, NOW(), 1650.00);
+VALUES (2, TIMESTAMPTZ '2026-01-12 18:40:00+00', 1200.00);
 
-INSERT INTO order_items
-VALUES (DEFAULT, 2, 3, 1, 450.00, 0.00, 450.00),
-       (DEFAULT, 2, 4, 1, 1200.00, 0.00, 1200.00);
-
-
-INSERT INTO orders (customer_id, order_date, total_amount)
-VALUES (3, NOW(), 950.00);
-
-INSERT INTO order_items
-VALUES (DEFAULT, 3, 5, 1, 350.00, 0.00, 350.00),
-       (DEFAULT, 3, 6, 1, 600.00, 0.00, 600.00);
+INSERT INTO order_items (order_id, product_id, quantity, unit_price, discount, total_price)
+VALUES
+    (4, 4, 1, 1200.00, 0.00, 1200.00);
 
 
 INSERT INTO orders (customer_id, order_date, total_amount)
-VALUES (4, NOW(), 1000.00);
+VALUES (2, TIMESTAMPTZ '2026-03-02 10:10:00+00', 1400.00);
 
-INSERT INTO order_items
-VALUES (DEFAULT, 4, 7, 2, 500.00, 0.00, 1000.00);
-
-
-INSERT INTO orders (customer_id, order_date, total_amount)
-VALUES (5, NOW(), 3500.00);
-
-INSERT INTO order_items
-VALUES (DEFAULT, 5, 8, 1, 3500.00, 0.00, 3500.00);
+INSERT INTO order_items (order_id, product_id, quantity, unit_price, discount, total_price)
+VALUES
+    (5, 6, 1, 600.00, 0.00, 600.00),
+    (5, 9, 2, 400.00, 0.00, 800.00);
 
 
 INSERT INTO orders (customer_id, order_date, total_amount)
-VALUES (6, NOW(), 800.00);
+VALUES (3, TIMESTAMPTZ '2026-02-01 00:00:00+00', 3500.00);
 
-INSERT INTO order_items
-VALUES (DEFAULT, 6, 9, 2, 400.00, 0.00, 800.00);
-
-
-INSERT INTO orders (customer_id, order_date, total_amount)
-VALUES (7, NOW(), 650.00);
-
-INSERT INTO order_items
-VALUES (DEFAULT, 7, 10, 1, 650.00, 0.00, 650.00);
+INSERT INTO order_items (order_id, product_id, quantity, unit_price, discount, total_price)
+VALUES
+    (6, 8, 1, 3500.00, 0.00, 3500.00);
 
 
 INSERT INTO orders (customer_id, order_date, total_amount)
-VALUES (8, NOW(), 1100.00);
+VALUES (4, TIMESTAMPTZ '2026-02-11 12:30:00+00', 900.00);
 
-INSERT INTO order_items
-VALUES (DEFAULT, 8, 11, 2, 550.00, 0.00, 1100.00);
-
-
-INSERT INTO orders (customer_id, order_date, total_amount)
-VALUES (9, NOW(), 900.00);
-
-INSERT INTO order_items
-VALUES (DEFAULT, 9, 12, 1, 900.00, 0.00, 900.00);
+INSERT INTO order_items (order_id, product_id, quantity, unit_price, discount, total_price)
+VALUES
+    (7, 10, 1, 650.00, 0.00, 650.00),
+    (7, 2,  1, 250.00, 0.00, 250.00);
 
 
 INSERT INTO orders (customer_id, order_date, total_amount)
-VALUES (10, NOW(), 300.00);
+VALUES (5, TIMESTAMPTZ '2026-02-15 07:45:00+00', 1100.00);
 
-INSERT INTO order_items
-VALUES (DEFAULT, 10, 13, 1, 300.00, 0.00, 300.00);
-
-
-INSERT INTO orders (customer_id, order_date, total_amount)
-VALUES (11, NOW(), 420.00);
-
-INSERT INTO order_items
-VALUES (DEFAULT, 11, 14, 1, 420.00, 0.00, 420.00);
+INSERT INTO order_items (order_id, product_id, quantity, unit_price, discount, total_price)
+VALUES
+    (8, 12, 1, 900.00, 100.00, 800.00),
+    (8, 13, 1, 300.00, 0.00, 300.00);
 
 
 INSERT INTO orders (customer_id, order_date, total_amount)
-VALUES (12, NOW(), 760.00);
+VALUES (5, TIMESTAMPTZ '2026-01-31 23:59:00+00', 500.00);
 
-INSERT INTO order_items
-VALUES (DEFAULT, 12, 15, 2, 380.00, 0.00, 760.00);
-
-
-INSERT INTO orders (customer_id, order_date, total_amount)
-VALUES (13, NOW(), 700.00);
-
-INSERT INTO order_items
-VALUES (DEFAULT, 13, 2, 2, 250.00, 0.00, 500.00),
-       (DEFAULT, 13, 13, 1, 300.00, 100.00, 200.00);
+INSERT INTO order_items (order_id, product_id, quantity, unit_price, discount, total_price)
+VALUES
+    (9, 7, 1, 500.00, 0.00, 500.00);
 
 
 INSERT INTO orders (customer_id, order_date, total_amount)
-VALUES (14, NOW(), 1000.00);
+VALUES (6, TIMESTAMPTZ '2026-02-20 16:05:00+00', 1000.00);
 
-INSERT INTO order_items
-VALUES (DEFAULT, 14, 3, 1, 450.00, 0.00, 450.00),
-       (DEFAULT, 14, 5, 1, 350.00, 0.00, 350.00),
-       (DEFAULT, 14, 2, 1, 250.00, 50.00, 200.00);
+INSERT INTO order_items (order_id, product_id, quantity, unit_price, discount, total_price)
+VALUES
+    (10, 15, 3, 380.00, 140.00, 1000.00);
 
 
 INSERT INTO orders (customer_id, order_date, total_amount)
-VALUES (15, NOW(), 5100.00);
+VALUES (7, TIMESTAMPTZ '2026-02-25 11:11:00+00', 420.00);
 
-INSERT INTO order_items
-VALUES (DEFAULT, 15, 1, 1, 4500.00, 0.00, 4500.00),
-       (DEFAULT, 15, 4, 1, 1200.00, 600.00, 600.00);
+INSERT INTO order_items (order_id, product_id, quantity, unit_price, discount, total_price)
+VALUES
+    (11, 14, 1, 420.00, 0.00, 420.00);
+
+
+INSERT INTO orders (customer_id, order_date, total_amount)
+VALUES (8, TIMESTAMPTZ '2026-03-05 19:20:00+00', 4000.00);
+
+INSERT INTO order_items (order_id, product_id, quantity, unit_price, discount, total_price)
+VALUES
+    (12, 1, 1, 4500.00, 500.00, 4000.00);
+
+
+INSERT INTO orders (customer_id, order_date, total_amount)
+VALUES (9, TIMESTAMPTZ '2026-02-12 20:10:00+00', 1050.00);
+
+INSERT INTO order_items (order_id, product_id, quantity, unit_price, discount, total_price)
+VALUES
+    (13, 11, 1, 550.00, 0.00, 550.00),
+    (13, 2,  2, 250.00, 0.00, 500.00);
+
+
+INSERT INTO orders (customer_id, order_date, total_amount)
+VALUES (10, TIMESTAMPTZ '2026-02-03 14:25:00+00', 400.00);
+
+INSERT INTO order_items (order_id, product_id, quantity, unit_price, discount, total_price)
+VALUES
+    (14, 9, 1, 400.00, 0.00, 400.00);
+
+
+INSERT INTO orders (customer_id, order_date, total_amount)
+VALUES (11, TIMESTAMPTZ '2026-01-20 09:05:00+00', 1000.00);
+
+INSERT INTO order_items (order_id, product_id, quantity, unit_price, discount, total_price)
+VALUES
+    (15, 6, 2, 600.00, 200.00, 1000.00);
+
+
+INSERT INTO orders (customer_id, order_date, total_amount)
+VALUES (12, TIMESTAMPTZ '2026-02-10 23:30:00+00', 800.00);
+
+INSERT INTO order_items (order_id, product_id, quantity, unit_price, discount, total_price)
+VALUES
+    (16, 3, 1, 450.00, 0.00, 450.00),
+    (16, 5, 1, 350.00, 0.00, 350.00);
+
+
+INSERT INTO orders (customer_id, order_date, total_amount)
+VALUES (13, TIMESTAMPTZ '2026-02-28 10:00:00+00', 1350.00);
+
+INSERT INTO order_items (order_id, product_id, quantity, unit_price, discount, total_price)
+VALUES
+    (17, 2,  4, 250.00, 0.00, 1000.00),
+    (17, 15, 1, 380.00, 30.00, 350.00);
+
+
+INSERT INTO orders (customer_id, order_date, total_amount)
+VALUES (14, TIMESTAMPTZ '2026-03-01 00:00:01+00', 2000.00);
+
+INSERT INTO order_items (order_id, product_id, quantity, unit_price, discount, total_price)
+VALUES
+    (18, 4, 2, 1200.00, 400.00, 2000.00);
+
+
+INSERT INTO orders (customer_id, order_date, total_amount)
+VALUES (15, TIMESTAMPTZ '2026-02-11 06:20:00+00', 600.00);
+
+INSERT INTO order_items (order_id, product_id, quantity, unit_price, discount, total_price)
+VALUES
+    (19, 13, 2, 300.00, 0.00, 600.00);
+
+
+INSERT INTO orders (customer_id, order_date, total_amount)
+VALUES (5, TIMESTAMPTZ '2026-03-04 13:00:00+00', 1450.00);
+
+INSERT INTO order_items (order_id, product_id, quantity, unit_price, discount, total_price)
+VALUES
+    (20, 2, 1, 250.00, 0.00, 250.00),
+    (20, 3, 1, 450.00, 0.00, 450.00),
+    (20, 12, 1, 900.00, 150.00, 750.00);
